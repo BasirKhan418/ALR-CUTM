@@ -3,7 +3,7 @@ import { PlusIcon } from "lucide-react"
 import { CourseTable } from "@/components/course-table"
 import { Forbidden } from "@/components/forbidden"
 import { PageEnter } from "@/components/page-enter"
-import { SessionFacts } from "@/components/session-facts"
+import { PageHeader } from "@/components/page-header"
 import { AdminSkeleton } from "@/components/app-shell-skeleton"
 import { buttonVariants } from "@/components/ui/button"
 import { hasRole, requireSession } from "@/lib/auth/guards"
@@ -38,28 +38,23 @@ async function FacultyCoursesLoader() {
   const courses = catalog.filter((course) => assignedIds.has(course.id))
 
   return (
-    <PageEnter className="flex w-full flex-col gap-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex flex-col gap-2">
-          <p className="eyebrow">Faculty workspace</p>
-          <h1 className="font-heading text-3xl font-semibold">Courses</h1>
-          <p className="text-sm text-muted-foreground">
-            Assigned subjects only. Each card shows the derived record types —
-            not a fixed Theory form.
-          </p>
-          <SessionFacts session={session} />
-        </div>
-        <Link
-          href="/faculty/courses/new"
-          className={cn(buttonVariants({ size: "sm" }), "h-8")}
-        >
-          <PlusIcon className="size-3.5" />
-          New course
-        </Link>
-      </div>
+    <PageEnter className="flex w-full flex-col gap-6">
+      <PageHeader
+        title="Courses"
+        description="Search assigned subjects by code, title, or combination. Combination code decides the record types."
+        action={
+          <Link
+            href="/faculty/courses/new"
+            className={cn(buttonVariants())}
+          >
+            <PlusIcon className="size-3.5" />
+            New course
+          </Link>
+        }
+      />
       <CourseTable
         courses={courses}
-        hrefFor={(course) => `/faculty/courses/${course.id}`}
+        hrefBase="/faculty/courses"
         empty="You are not assigned to a course yet. Create one or ask Admin to assign you."
       />
     </PageEnter>

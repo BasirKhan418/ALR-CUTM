@@ -37,7 +37,7 @@ export function DeclarationForm() {
       </div>
       <div className="flex flex-col gap-3 animate-enter">
         <p className="eyebrow">First visit</p>
-        <h1 className="font-heading text-3xl font-semibold">
+        <h1 className="font-heading text-2xl font-bold sm:text-3xl">
           One-time e-declaration
         </h1>
         <p className="text-sm leading-6 text-muted-foreground">

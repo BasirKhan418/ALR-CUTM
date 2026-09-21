@@ -12,7 +12,7 @@ export function RoleSwitcher({ roles }: { roles: ShellRole[] }) {
   if (items.length < 2) return null
 
   return (
-    <nav className="hidden items-center gap-0.5 rounded-lg bg-muted p-[3px] md:flex">
+    <nav className="hidden max-w-[min(100%,22rem)] items-center gap-0.5 overflow-x-auto rounded-lg bg-muted p-[3px] lg:flex">
       {items.map((item) => {
         const active =
           pathname === item.href || pathname.startsWith(`${item.href}/`)

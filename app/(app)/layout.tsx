@@ -28,6 +28,7 @@ async function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <SidebarProvider
+      className="h-svh overflow-hidden"
       style={
         {
           "--sidebar-width": "17.5rem",
@@ -37,19 +38,21 @@ async function AppShell({ children }: { children: ReactNode }) {
       <RoleQuerySync roles={roles} />
       <AppSidebar
         roles={roles}
-        name={session.name}
-        email={session.email}
         campusName={session.campusName}
         homeHref={firstShellHref(session.roles)}
       />
-      <SidebarInset>
+      <SidebarInset className="min-w-0 overflow-hidden">
         <SiteHeader
           name={session.name}
           email={session.email}
           campusName={session.campusName}
           roles={roles}
         />
-        <div className="flex flex-1 flex-col p-6 md:p-8">{children}</div>
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+          <div className="w-full px-4 py-5 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

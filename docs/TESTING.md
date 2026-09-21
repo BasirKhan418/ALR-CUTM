@@ -346,3 +346,21 @@ Terminal B: `npm run worker`
 Browser: `/login` → `student.bbsr@cutm.ac.in` → Continue (no OTP) → accept declaration → `/student`.
 
 Then try `someone@gmail.com` (must fail), `khanbasir5555@gmail.com` (direct to `/admin`), and `khanbasir5556@gmail.com` (OTP in Terminal A).
+
+---
+
+## 11. M03 — Learning Record submissions
+
+```bash
+npm run seed:m02
+npm run seed:m03
+```
+
+1. Sign in as `student.bbsr@cutm.ac.in`. Open **My courses**.
+2. Open `ALR-THEORY-PRACTICE-PROJECT`. Tabs must be Classroom, Applied, and a Project **M05** stub. No Workshop tab.
+3. Save a Classroom draft with only a topic. It must save. Submit with empty Books/Manuals must fail. Fill Books/Manuals (`None` is allowed) and submit.
+4. On Applied, add a second experiment card. Submit is blocked until every narrative field is filled.
+5. Open `ALR-WORKSHOP`. Header shows a running hours total. Log two tasks with hours; the header sum updates. Copy says hours, not session count.
+6. Open `ALR-THEORY`. There is no Applied tab. Crafting `?record=APPLIED_ACTION_LEARNING` shows “This subject does not require Applied and Action Learning.”
+7. Sign in as `faculty.bbsr@cutm.ac.in`. Open **Inbox**. Submitted Classroom/Applied/Workshop rows appear read-only. No score inputs.
+8. Faculty **Courses** search finds `ALR-THEORY` / test courses. Pagination stays on the list.

@@ -1,7 +1,8 @@
-import Link from "next/link"
 import { CourseSetupForm } from "@/components/course-setup-form"
 import { Forbidden } from "@/components/forbidden"
+import { PageBreadcrumb } from "@/components/page-breadcrumb"
 import { PageEnter } from "@/components/page-enter"
+import { PageHeader } from "@/components/page-header"
 import { WorkspaceSkeleton } from "@/components/app-shell-skeleton"
 import { hasRole, requireSession } from "@/lib/auth/guards"
 import { loadSetupOptions } from "@/lib/catalog/load-manage"
@@ -28,21 +29,17 @@ async function Loader() {
   ])
 
   return (
-    <PageEnter className="flex w-full flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <p className="eyebrow">Faculty workspace</p>
-        <h1 className="font-heading text-3xl font-semibold">New course</h1>
-        <p className="text-sm text-muted-foreground">
-          The combination code decides required records. You will be assigned as
-          faculty automatically.
-        </p>
-        <Link
-          href="/faculty"
-          className="w-fit text-sm text-muted-foreground hover:text-foreground"
-        >
-          Back to courses
-        </Link>
-      </div>
+    <PageEnter className="flex w-full flex-col gap-6">
+      <PageBreadcrumb
+        items={[
+          { href: "/faculty", label: "Courses" },
+          { label: "New course" },
+        ]}
+      />
+      <PageHeader
+        title="New course"
+        description="The combination code decides required records. You will be assigned as faculty automatically."
+      />
       <CourseSetupForm
         campuses={options.campuses.filter((campus) => campus.id === session.campusId)}
         departments={options.departments}

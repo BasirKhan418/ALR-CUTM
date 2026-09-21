@@ -53,12 +53,13 @@ export function RoleHome({
   ]
 
   return (
-    <PageEnter className="flex w-full max-w-3xl flex-col gap-6">
-      <div className="flex flex-col gap-3">
-        <p className="eyebrow">{title} workspace</p>
-        <h1 className="font-heading text-3xl font-semibold">{session.name}</h1>
+    <PageEnter className="flex w-full flex-col gap-6">
+      <div className="flex flex-col gap-2">
+        <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">
+          {title}
+        </h1>
         <p className="max-w-xl text-sm leading-6 text-muted-foreground">
-          {purpose}
+          Welcome, {session.name}. {purpose}
         </p>
         <div className="flex flex-wrap gap-1.5 pt-1">
           {session.roles.map((item) => (

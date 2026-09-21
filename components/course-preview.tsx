@@ -17,9 +17,11 @@ import { recordTypeLabel } from "@/lib/domain/record-types"
 export function CoursePreview({
   configs,
   deliveryMode,
+  compact = false,
 }: {
   configs: CourseRecordConfig[]
   deliveryMode?: string
+  compact?: boolean
 }) {
   if (configs.length === 0) {
     return (
@@ -30,10 +32,12 @@ export function CoursePreview({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className={compact ? "flex flex-col gap-3" : "flex flex-col gap-4"}>
       <div>
-        <p className="text-sm font-medium">This subject requires:</p>
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        {compact ? null : (
+          <p className="text-sm font-medium">This subject requires:</p>
+        )}
+        <div className={compact ? "flex flex-wrap gap-1.5" : "mt-2 flex flex-wrap gap-1.5"}>
           {configs.map((config) => (
             <Badge key={config.recordType} variant="outline">
               {recordTypeLabel(config.recordType)} · {config.frameworkWeightPercent}%
@@ -68,19 +72,40 @@ export function CoursePreview({
           </TableBody>
         </Table>
       </div>
-      <ul className="flex flex-col gap-2 text-sm leading-6 text-muted-foreground">
-        {configs.map((config) => {
-          const example = exampleNormalization(config)
-          return (
-            <li key={config.recordType}>
-              <span className="font-medium text-foreground">
-                {recordTypeLabel(config.recordType)}.
-              </span>{" "}
-              {formulaSentence(config)} {example.caption}
-            </li>
-          )
-        })}
-      </ul>
+      {compact ? (
+        <details className="text-sm">
+          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+            How marks are normalized
+          </summary>
+          <ul className="mt-2 flex flex-col gap-2 leading-6 text-muted-foreground">
+            {configs.map((config) => {
+              const example = exampleNormalization(config)
+              return (
+                <li key={config.recordType}>
+                  <span className="font-medium text-foreground">
+                    {recordTypeLabel(config.recordType)}.
+                  </span>{" "}
+                  {formulaSentence(config)} {example.caption}
+                </li>
+              )
+            })}
+          </ul>
+        </details>
+      ) : (
+        <ul className="flex flex-col gap-2 text-sm leading-6 text-muted-foreground">
+          {configs.map((config) => {
+            const example = exampleNormalization(config)
+            return (
+              <li key={config.recordType}>
+                <span className="font-medium text-foreground">
+                  {recordTypeLabel(config.recordType)}.
+                </span>{" "}
+                {formulaSentence(config)} {example.caption}
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </div>
   )
 }

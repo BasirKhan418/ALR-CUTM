@@ -13,6 +13,15 @@ export async function processNotify(job: Job): Promise<{ ok: true }> {
     return { ok: true }
   }
 
+  if (job.name === "notify.email") {
+    const kind = String(job.data?.kind ?? "generic")
+    const to = String(job.data?.to ?? "")
+    console.log(
+      `[mail] notify.email ${kind} ${to} ${job.data?.recordType ?? ""} ${job.data?.courseId ?? ""}`
+    )
+    return { ok: true }
+  }
+
   if (job.name === "user.provisioned") {
     const to = String(job.data?.to ?? "")
     const name = String(job.data?.name ?? "")

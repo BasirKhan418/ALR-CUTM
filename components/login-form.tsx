@@ -61,7 +61,7 @@ export function LoginForm({
       <FieldGroup>
         <div className="flex flex-col gap-2">
           <p className="eyebrow">Campus sign-in</p>
-          <h1 className="font-heading text-3xl font-semibold">
+          <h1 className="font-heading text-2xl font-bold sm:text-3xl">
             {step === "otp" ? "Enter the code" : "Sign in to ALR"}
           </h1>
           <p className="text-sm leading-6 text-muted-foreground">

@@ -1,12 +1,13 @@
 import { Forbidden } from "@/components/forbidden"
 import { PageEnter } from "@/components/page-enter"
-import { SessionFacts } from "@/components/session-facts"
+import { PageHeader } from "@/components/page-header"
 import { StudentCourses } from "@/components/student-courses"
 import { WorkspaceSkeleton } from "@/components/app-shell-skeleton"
 import { hasRole, requireSession } from "@/lib/auth/guards"
 import { loadCampusCatalog } from "@/lib/catalog/queries"
 import { Enrollment } from "@/lib/db/models/enrollment"
 import { connectMongo } from "@/lib/db/mongo"
+import { listMyEntries } from "@/lib/lr/queries"
 import { firstShellHref } from "@/lib/domain/roles"
 import { Suspense } from "react"
 
@@ -25,23 +26,21 @@ async function StudentCoursesLoader() {
   }
 
   await connectMongo()
-  const enrollments = await Enrollment.find({ studentId: session.userId }).lean()
-  const catalog = await loadCampusCatalog(session.campusId)
+  const [enrollments, catalog, entries] = await Promise.all([
+    Enrollment.find({ studentId: session.userId }).lean(),
+    loadCampusCatalog(session.campusId),
+    listMyEntries(session.userId),
+  ])
   const enrolledIds = new Set(enrollments.map((item) => String(item.courseId)))
   const courses = catalog.filter((course) => enrolledIds.has(course.id))
 
   return (
-    <PageEnter className="flex w-full flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <p className="eyebrow">Student workspace</p>
-        <h1 className="font-heading text-3xl font-semibold">My courses</h1>
-        <p className="text-sm text-muted-foreground">
-          Required records come from the subject combination. Submission opens
-          in the next milestone — status is not opened.
-        </p>
-        <SessionFacts session={session} />
-      </div>
-      <StudentCourses courses={courses} />
+    <PageEnter className="flex w-full flex-col gap-6">
+      <PageHeader
+        title="My courses"
+        description="Pick a subject, then file only the record types that combination requires. Project, thesis, and internship stay closed until M05."
+      />
+      <StudentCourses courses={courses} entries={entries} />
     </PageEnter>
   )
 }

@@ -10,6 +10,7 @@ import { Course } from "@/lib/db/models/course"
 import { Department } from "@/lib/db/models/department"
 import { Enrollment } from "@/lib/db/models/enrollment"
 import { FacultyAssignment } from "@/lib/db/models/faculty-assignment"
+import { LrEntry } from "@/lib/db/models/lr-entry"
 import { Programme } from "@/lib/db/models/programme"
 import { Term } from "@/lib/db/models/term"
 import { User } from "@/lib/db/models/user"
@@ -57,6 +58,22 @@ function canManageCatalog(
   return true
 }
 
+async function canManageCourse(
+  session: AppSession,
+  course: { _id: Types.ObjectId; campusId: Types.ObjectId; departmentId: Types.ObjectId }
+) {
+  if (hasRole(session, "ADMIN")) return true
+  if (!hasRole(session, "FACULTY")) return false
+  if (session.campusId !== String(course.campusId)) return false
+  const assigned = await FacultyAssignment.findOne({
+    courseId: course._id,
+    userId: session.userId,
+    role: "FACULTY",
+  })
+  if (assigned) return true
+  return canManageCatalog(session, String(course.campusId), String(course.departmentId))
+}
+
 async function requireCatalogEditor() {
   const session = await requireSession()
   if (!hasRole(session, "ADMIN", "FACULTY")) {
@@ -65,13 +82,19 @@ async function requireCatalogEditor() {
   return { session, error: null }
 }
 
-function invalidateCatalog(campusId: string) {
+function invalidateCatalog(campusId: string, courseId?: string) {
   updateTag("catalog")
   updateTag(campusId)
   revalidatePath("/admin/courses")
   revalidatePath("/faculty")
+  revalidatePath("/faculty/inbox")
   revalidatePath("/student")
   revalidatePath("/mentor")
+  if (courseId) {
+    revalidatePath(`/admin/courses/${courseId}`)
+    revalidatePath(`/faculty/courses/${courseId}`)
+    revalidatePath(`/student/courses/${courseId}`)
+  }
 }
 
 export async function createCourse(
@@ -161,7 +184,7 @@ export async function createCourse(
       combinationCode,
     },
   })
-  invalidateCatalog(campusId)
+  invalidateCatalog(campusId, String(course._id))
   const base = returnTo.startsWith("/faculty") ? "/faculty" : "/admin"
   redirect(`${base}/courses/${String(course._id)}`)
 }
@@ -183,13 +206,7 @@ export async function updateCourseCombination(
   await connectMongo()
   const course = await Course.findById(courseId)
   if (!course) return { ok: false, message: "Course was not found." }
-  if (
-    !canManageCatalog(
-      session,
-      String(course.campusId),
-      String(course.departmentId)
-    )
-  ) {
+  if (!(await canManageCourse(session, course))) {
     return { ok: false, message: "You cannot change this course." }
   }
 
@@ -198,12 +215,20 @@ export async function updateCourseCombination(
   course.deliveryMode = deliveryModeFor(combinationCode)
   course.recordConfigs = buildRecordConfigs(combinationCode, composites)
   await course.save()
+  const nextTypes = course.recordConfigs.map(
+    (config: { recordType: string }) => config.recordType
+  )
+  await LrEntry.deleteMany({
+    courseId: course._id,
+    status: "DRAFT",
+    recordType: { $nin: nextTypes },
+  })
   await AuditLog.create({
     actorId: session.userId,
     action: "course.combination",
     payload: { courseId, combinationCode },
   })
-  invalidateCatalog(String(course.campusId))
+  invalidateCatalog(String(course.campusId), courseId)
   return { ok: true, message: "Required records were rebuilt from the combination code." }
 }
 
@@ -222,13 +247,7 @@ export async function enrollStudents(
   await connectMongo()
   const course = await Course.findById(courseId)
   if (!course) return { ok: false, message: "Course was not found." }
-  if (
-    !canManageCatalog(
-      session,
-      String(course.campusId),
-      String(course.departmentId)
-    )
-  ) {
+  if (!(await canManageCourse(session, course))) {
     return { ok: false, message: "You cannot enroll students on this course." }
   }
 
@@ -237,6 +256,9 @@ export async function enrollStudents(
     .map(normalizeEmail)
     .filter(Boolean)
   const ids = selected.filter((id) => objectId(id))
+  if (emails.length === 0 && ids.length === 0) {
+    return { ok: false, message: "Paste emails or select at least one student." }
+  }
   const students = await User.find({
     campusId: course.campusId,
     roles: "STUDENT",
@@ -272,7 +294,7 @@ export async function enrollStudents(
     action: "course.enroll",
     payload: { courseId, added, emails },
   })
-  invalidateCatalog(String(course.campusId))
+  invalidateCatalog(String(course.campusId), courseId)
   return {
     ok: true,
     message:
@@ -294,13 +316,7 @@ export async function unenrollStudent(
   await connectMongo()
   const course = await Course.findById(courseId)
   if (!course) return { ok: false, message: "Course was not found." }
-  if (
-    !canManageCatalog(
-      session,
-      String(course.campusId),
-      String(course.departmentId)
-    )
-  ) {
+  if (!(await canManageCourse(session, course))) {
     return { ok: false, message: "You cannot change enrollment on this course." }
   }
   await Enrollment.deleteOne({ courseId, studentId })
@@ -309,7 +325,7 @@ export async function unenrollStudent(
     action: "course.unenroll",
     payload: { courseId, studentId },
   })
-  invalidateCatalog(String(course.campusId))
+  invalidateCatalog(String(course.campusId), courseId)
   return { ok: true, message: "Student removed from the course." }
 }
 
@@ -330,13 +346,7 @@ async function assignStaff(
   ])
   if (!course) return { ok: false, message: "Course was not found." }
   if (!user || !user.active) return { ok: false, message: "That person was not found." }
-  if (
-    !canManageCatalog(
-      session,
-      String(course.campusId),
-      String(course.departmentId)
-    )
-  ) {
+  if (!(await canManageCourse(session, course))) {
     return { ok: false, message: "You cannot assign staff on this course." }
   }
   if (String(user.campusId) !== String(course.campusId)) {
@@ -361,7 +371,7 @@ async function assignStaff(
     action: role === "MENTOR" ? "course.assignMentor" : "course.assignFaculty",
     payload: { courseId, userId },
   })
-  invalidateCatalog(String(course.campusId))
+  invalidateCatalog(String(course.campusId), courseId)
   return {
     ok: true,
     message:
@@ -405,13 +415,7 @@ export async function unassignStaff(
   await connectMongo()
   const course = await Course.findById(courseId)
   if (!course) return { ok: false, message: "Course was not found." }
-  if (
-    !canManageCatalog(
-      session,
-      String(course.campusId),
-      String(course.departmentId)
-    )
-  ) {
+  if (!(await canManageCourse(session, course))) {
     return { ok: false, message: "You cannot change staff on this course." }
   }
   await FacultyAssignment.deleteOne({ _id: assignmentId, courseId })
@@ -420,7 +424,7 @@ export async function unassignStaff(
     action: "course.unassign",
     payload: { courseId, assignmentId },
   })
-  invalidateCatalog(String(course.campusId))
+  invalidateCatalog(String(course.campusId), courseId)
   return { ok: true, message: "Assignment removed." }
 }
 

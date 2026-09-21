@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 export function AppShellSkeleton() {
   return (
     <div className="flex min-h-svh w-full bg-background">
-      <aside className="hidden w-64 shrink-0 border-r bg-sidebar p-3 md:flex md:flex-col">
+      <aside className="hidden w-[17.5rem] shrink-0 border-r bg-sidebar p-3 md:flex md:flex-col">
         <div className="flex items-center gap-2.5 px-2 py-2">
           <Skeleton className="size-8 rounded-md" />
           <div className="flex flex-1 flex-col gap-1.5">
@@ -29,7 +29,7 @@ export function AppShellSkeleton() {
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex h-14 items-center gap-3 border-b px-4">
+        <div className="flex h-16 items-center gap-3 border-b px-4">
           <Skeleton className="size-7 rounded-md" />
           <Skeleton className="h-4 w-28" />
           <Skeleton className="ml-auto h-6 w-24 rounded-full" />

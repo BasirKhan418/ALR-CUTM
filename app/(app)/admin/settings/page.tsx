@@ -1,7 +1,7 @@
-import { AdminCatalogNav } from "@/components/admin-catalog-nav"
 import { ClassroomWeightsForm } from "@/components/classroom-weights-form"
 import { Forbidden } from "@/components/forbidden"
 import { PageEnter } from "@/components/page-enter"
+import { PageHeader } from "@/components/page-header"
 import { TermForm } from "@/components/term-form"
 import { WorkspaceSkeleton } from "@/components/app-shell-skeleton"
 import { hasRole, requireSession } from "@/lib/auth/guards"
@@ -31,17 +31,13 @@ async function Loader() {
   ])
 
   return (
-    <PageEnter className="flex w-full max-w-2xl flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <p className="eyebrow">Administration</p>
-        <h1 className="font-heading text-3xl font-semibold">Catalog settings</h1>
-        <p className="text-sm text-muted-foreground">
-          Terms are required before course setup. Classroom composites must sum
-          to 10 and become the default Theory / MOOC split.
-        </p>
-        <AdminCatalogNav current="/admin/settings" />
-      </div>
-      <section className="flex flex-col gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10">
+    <PageEnter className="flex w-full flex-col gap-6">
+      <PageHeader
+        title="Settings"
+        description="Terms are required before course setup. Classroom composites must sum to 10 and become the default Theory / MOOC split."
+      />
+      <div className="grid gap-6 xl:grid-cols-2">
+      <section className="flex flex-col gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10 sm:p-5">
         <div>
           <h2 className="font-heading text-lg font-semibold">Terms</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -56,7 +52,7 @@ async function Loader() {
           }))}
         />
       </section>
-      <section className="flex flex-col gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10">
+      <section className="flex flex-col gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10 sm:p-5">
         <div>
           <h2 className="font-heading text-lg font-semibold">
             Classroom composites
@@ -67,6 +63,7 @@ async function Loader() {
         </div>
         <ClassroomWeightsForm defaults={defaults} />
       </section>
+      </div>
     </PageEnter>
   )
 }

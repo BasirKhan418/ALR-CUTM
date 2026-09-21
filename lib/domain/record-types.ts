@@ -18,6 +18,10 @@ export const RECORD_TYPE_LABELS: Record<RecordType, string> = {
   INTERNSHIP_REPORT: "Internship Report",
 }
 
+export function isRecordType(value: string): value is RecordType {
+  return (RECORD_TYPES as readonly string[]).includes(value)
+}
+
 export function recordTypeLabel(type: RecordType | string): string {
   return RECORD_TYPE_LABELS[type as RecordType] ?? type
 }

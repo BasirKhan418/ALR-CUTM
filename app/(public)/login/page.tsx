@@ -12,7 +12,7 @@ export default function LoginPage({
 }) {
   return (
     <div className="grid min-h-svh lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-      <div className="flex flex-col p-6 md:p-10">
+      <div className="flex flex-col p-4 sm:p-6 md:p-10">
         <Link
           href="/"
           className="w-fit transition-opacity hover:opacity-80"
@@ -42,7 +42,7 @@ export default function LoginPage({
           <p className="text-xs font-medium tracking-[0.08em] text-primary-foreground/70 uppercase">
             Centurion University
           </p>
-          <h2 className="max-w-md font-heading text-4xl font-semibold">
+          <h2 className="max-w-md font-heading text-3xl font-bold lg:text-4xl">
             The official Learning Record
           </h2>
           <p className="max-w-md text-sm leading-6 text-primary-foreground/75">

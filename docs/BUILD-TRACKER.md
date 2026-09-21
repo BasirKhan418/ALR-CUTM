@@ -4,9 +4,9 @@ Update this file at the end of every milestone implementation. It is the handoff
 
 ## Current State
 
-Status: `M02 shipped`
+Status: `M03 shipped`
 
-M00–M02 are in the tree. Sign-in is email + OTP and optional Google. Sessions are opaque `alr_session` cookies in Valkey (7 days). Courses use the 12-way combination map; students can see required records but cannot submit yet.
+M00–M03 are in the tree. Sign-in is email + OTP and optional Google. Sessions are opaque `alr_session` cookies in Valkey (7 days). Courses use the 12-way combination map. Students can file Classroom, Applied, and Workshop entries; Project / Thesis / Internship stay stubbed until M05. Faculty can read submissions but cannot score yet.
 
 ## What We Are Building
 
@@ -38,7 +38,7 @@ ALR is a Next.js 16 digital Learning Record platform for Centurion University. I
 | M00 Foundation | Done | Docker compose, domain constants, Mongo/Valkey/BullMQ, role shells, CUTM theme + logo | Health and worker ping |
 | M01 Identity/Auth | Done | Email OTP + Google, Valkey sessions (7d), declaration, admin provision, multi-role cookie/`?role=` switcher | Google is find-only; OTP auto-creates allowed CUTM emails per TESTING.md |
 | M02 Catalog/Mapping | Done | 12-way combination setup, derived record configs, MOOC delivery, enroll, Faculty vs Mentor, classroom split, student my-courses, admin terms + campus filter | Students cannot submit yet |
-| M03 LR Submissions | Not started | - | Requires M02 |
+| M03 LR Submissions | Done | Per-record Submit LR tabs, draft/submit, books/manuals, workshop hours sum, faculty read-only inbox, Project/Thesis/Internship stubs | Scoring is M04; Word/PDF is M05 |
 | M04 Evaluation/Scoring | Not started | - | Requires M03 |
 | M05 Major Deliverables | Not started | - | Requires M04 basics and auth |
 | M06 Plagiarism/Integrity | Not started | - | Requires M05 files/deliverables |
@@ -101,13 +101,14 @@ npm run worker
 npm run seed:m00
 npm run seed:m01
 npm run seed:m02
+npm run seed:m03
 ```
 
-M02 commands run:
+M03 commands run:
 
 - `npm run lint` — pass
-- `npm run build` — pass (catalog pages PPR; course detail dynamic)
-- `npm run seed:m02` — pass (12 Bhubaneswar courses, student enrolled in THEORY_PRACTICE_PROJECT)
+- `npm run build` — pass
+- `npm run seed:m03` — pass (student also enrolled in ALR-WORKSHOP and ALR-THEORY)
 
 Restart `npm run dev` and `npm run worker` after pulling M01 so `AUTH_SECRET` and the notify worker load.
 
@@ -119,11 +120,11 @@ Local test steps (what to run, where OTP prints, seed emails, domain rules): [`d
 | --- | --- | --- |
 | 12-way subject mapping | Implemented | M02 |
 | MOOC course type | Implemented | M02 |
-| Multi-record subject submission | Planned | M03 |
+| Multi-record subject submission | Implemented | M03 |
 | Normalization formula visible in UI | Implemented | M02, M04 |
 | Classroom 4 components | Planned | M04 |
-| Workshop hours logging | Planned | M03 |
-| Books/Manuals Referred | Planned | M03 |
+| Workshop hours logging | Implemented | M03 |
+| Books/Manuals Referred | Implemented | M03 |
 | Faculty override reason visible to student | Planned | M04 |
 | Major deliverable one-record model | Planned | M05 |
 | Multi-candidate deliverables | Planned | M05 |
@@ -151,7 +152,7 @@ Local test steps (what to run, where OTP prints, seed emails, domain rules): [`d
 
 ## Last Completed Milestone
 
-M02 Catalog/Mapping
+M03 LR Submissions
 
 ## Known Gaps / Decisions
 
@@ -163,6 +164,9 @@ M02 Catalog/Mapping
 - Auth is email + OTP and Google only. Local OTP uses worker/Next console log until SMTP is set. Google needs real `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` to enable the button.
 - Sign-in accepts `@cutm.ac.in`, `@cutm.edu.in`, dummy admin `khanbasir5555@gmail.com`, and OTP Gmail `khanbasir5556@gmail.com`. Seed dummy users skip OTP and enter directly until invitation-based OTP ships. Other Gmail addresses are rejected.
 - SMTP send is a small STARTTLS helper; if it fails, fix env or leave SMTP unset and use console OTP.
+- Workshop hours certificate is JSON on the student course header. PDF export is M08.
+- Draft save is server-validated only on Submit, so incomplete drafts can be stored.
+- Changing a combination drops leftover **draft** entries of removed record types. Submitted rows stay for the faculty inbox.
 
 ## How To Update This Tracker
 

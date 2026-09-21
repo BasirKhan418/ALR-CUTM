@@ -11,7 +11,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
-      <header className="flex items-center justify-between border-b px-6 py-4 md:px-10">
+      <header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b bg-background/90 px-4 py-3 backdrop-blur-sm sm:px-6 md:px-10">
         <BrandMark preload />
         <Link
           href="/login"
@@ -20,10 +20,10 @@ export default async function HomePage() {
           Sign in
         </Link>
       </header>
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 py-16 md:px-10">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-4 py-12 sm:px-6 sm:py-16 md:px-10">
         <div className="animate-enter max-w-xl">
           <p className="eyebrow">Centurion University</p>
-          <h1 className="mt-4 font-heading text-4xl font-semibold text-foreground md:text-5xl">
+          <h1 className="mt-4 font-heading text-3xl font-bold text-foreground sm:text-4xl md:text-5xl">
             ALR — Learning Record
           </h1>
           <p className="mt-5 max-w-md text-base leading-7 text-muted-foreground md:text-lg">
@@ -43,7 +43,7 @@ export default async function HomePage() {
         </div>
       </main>
       <footer className="animate-enter-late border-t">
-        <dl className="mx-auto grid w-full max-w-5xl gap-6 px-6 py-6 text-sm md:grid-cols-3 md:px-10">
+        <dl className="mx-auto grid w-full max-w-5xl gap-6 px-4 py-6 text-sm sm:px-6 md:grid-cols-3 md:px-10">
           <div className="flex flex-col gap-1">
             <dt className="eyebrow">Sign-in</dt>
             <dd className="font-medium">Campus email + OTP</dd>

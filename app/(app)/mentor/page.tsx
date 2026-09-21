@@ -1,7 +1,7 @@
 import { CourseTable } from "@/components/course-table"
 import { Forbidden } from "@/components/forbidden"
 import { PageEnter } from "@/components/page-enter"
-import { SessionFacts } from "@/components/session-facts"
+import { PageHeader } from "@/components/page-header"
 import { AdminSkeleton } from "@/components/app-shell-skeleton"
 import { hasRole, requireSession } from "@/lib/auth/guards"
 import { cachedCampusCatalog } from "@/lib/catalog/queries"
@@ -34,16 +34,11 @@ async function MentorCoursesLoader() {
   const courses = catalog.filter((course) => assignedIds.has(course.id))
 
   return (
-    <PageEnter className="flex w-full flex-col gap-5">
-      <div className="flex flex-col gap-2">
-        <p className="eyebrow">Mentor workspace</p>
-        <h1 className="font-heading text-3xl font-semibold">PO / PSO courses</h1>
-        <p className="text-sm text-muted-foreground">
-          These are subjects where you are the mentor, independently of faculty
-          assignment.
-        </p>
-        <SessionFacts session={session} />
-      </div>
+    <PageEnter className="flex w-full flex-col gap-6">
+      <PageHeader
+        title="PO / PSO courses"
+        description="Subjects where you are the mentor, independently of faculty assignment."
+      />
       <CourseTable
         courses={courses}
         empty="You are not assigned as PO/PSO mentor on any course yet."

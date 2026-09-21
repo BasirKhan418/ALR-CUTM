@@ -12,6 +12,8 @@ export function SubmitButton({
   variant = "default",
   size = "default",
   disabled = false,
+  name,
+  value,
 }: {
   children: React.ReactNode
   pendingLabel?: string
@@ -19,6 +21,8 @@ export function SubmitButton({
   variant?: React.ComponentProps<typeof Button>["variant"]
   size?: React.ComponentProps<typeof Button>["size"]
   disabled?: boolean
+  name?: string
+  value?: string
 }) {
   const { pending } = useFormStatus()
 
@@ -27,6 +31,8 @@ export function SubmitButton({
       type="submit"
       variant={variant}
       size={size}
+      name={name}
+      value={value}
       disabled={disabled || pending}
       className={cn(pending && "pointer-events-none", className)}
     >

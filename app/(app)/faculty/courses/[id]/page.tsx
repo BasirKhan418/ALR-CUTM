@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { CourseManage } from "@/components/course-manage"
 import { Forbidden } from "@/components/forbidden"
+import { PageBreadcrumb } from "@/components/page-breadcrumb"
 import { PageEnter } from "@/components/page-enter"
 import { WorkspaceSkeleton } from "@/components/app-shell-skeleton"
 import { hasRole, requireSession } from "@/lib/auth/guards"
@@ -49,13 +50,21 @@ async function Loader({ params }: { params: Promise<{ id: string }> }) {
   }
 
   return (
-    <PageEnter className="flex w-full flex-col gap-5">
-      <Link
-        href="/faculty"
-        className="w-fit text-sm text-muted-foreground hover:text-foreground"
-      >
-        Back to courses
-      </Link>
+    <PageEnter className="flex w-full flex-col gap-6">
+      <PageBreadcrumb
+        items={[
+          { href: "/faculty", label: "Courses" },
+          { label: data.course.code },
+        ]}
+        extra={
+          <Link
+            href={`/faculty/inbox?course=${id}`}
+            className="hover:text-foreground"
+          >
+            View inbox
+          </Link>
+        }
+      />
       <CourseManage {...data} />
     </PageEnter>
   )

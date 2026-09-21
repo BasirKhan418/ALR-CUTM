@@ -79,7 +79,7 @@ export function CourseSetupForm({
   return (
     <form action={action} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <input type="hidden" name="returnTo" value={returnTo} />
-      <FieldGroup>
+      <FieldGroup className="rounded-xl bg-card p-4 ring-1 ring-foreground/10 sm:p-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field>
             <FieldLabel htmlFor="campusId">Campus</FieldLabel>
