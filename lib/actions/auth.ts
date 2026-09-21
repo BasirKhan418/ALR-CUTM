@@ -1,5 +1,6 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { AuditLog } from "@/lib/db/models/audit-log"
 import { Declaration } from "@/lib/db/models/declaration"
@@ -16,7 +17,7 @@ import {
   isDevDirectLoginEmail,
   normalizeEmail,
 } from "@/lib/domain/email"
-import { firstShellHref } from "@/lib/domain/roles"
+import { APP_SHELL_NAV, firstShellHref } from "@/lib/domain/roles"
 import {
   generateOtp,
   isOtpLocked,
@@ -177,6 +178,7 @@ export async function signOut(): Promise<void> {
 export type DeclarationState = {
   ok: boolean
   message?: string
+  next?: string
 }
 
 export async function acceptDeclaration(
@@ -189,28 +191,63 @@ export async function acceptDeclaration(
     return { ok: false, message: "You must accept the declaration to continue." }
   }
 
+  const home = firstShellHref(session.roles)
+
   if (session.declarationAcceptedAt) {
-    redirect(firstShellHref(session.roles))
+    return { ok: true, next: home }
   }
 
   const acceptedAt = new Date()
-  await connectMongo()
-  await Declaration.create({
-    userId: session.userId,
-    acceptedAt,
-    ip: await requestIp(),
-    userAgent: await requestUserAgent(),
-    textVersion: DECLARATION_VERSION,
-  })
-  await User.updateOne(
-    { _id: session.userId },
-    { $set: { declarationAcceptedAt: acceptedAt } }
-  )
-  await updateSessionDeclaration(acceptedAt)
-  await AuditLog.create({
-    actorId: session.userId,
-    action: "declaration.accept",
-    payload: { textVersion: DECLARATION_VERSION },
-  })
-  redirect(firstShellHref(session.roles))
+  try {
+    await connectMongo()
+    const updated = await User.findByIdAndUpdate(
+      session.userId,
+      { $set: { declarationAcceptedAt: acceptedAt } },
+      { returnDocument: "after" }
+    )
+    if (!updated?.declarationAcceptedAt) {
+      return {
+        ok: false,
+        message: "Could not save the declaration. Try again.",
+      }
+    }
+
+    try {
+      await Declaration.create({
+        userId: session.userId,
+        acceptedAt,
+        ip: await requestIp(),
+        userAgent: await requestUserAgent(),
+        textVersion: DECLARATION_VERSION,
+      })
+    } catch (error) {
+      console.error("[declaration] record", error)
+    }
+    try {
+      await updateSessionDeclaration(acceptedAt)
+    } catch (error) {
+      console.error("[declaration] session", error)
+    }
+    try {
+      await AuditLog.create({
+        actorId: session.userId,
+        action: "declaration.accept",
+        payload: { textVersion: DECLARATION_VERSION },
+      })
+    } catch (error) {
+      console.error("[declaration] audit", error)
+    }
+
+    revalidatePath("/", "layout")
+    for (const item of APP_SHELL_NAV) {
+      revalidatePath(item.href)
+    }
+    return { ok: true, next: `${home}?declared=1` }
+  } catch (error) {
+    console.error("[declaration]", error)
+    return {
+      ok: false,
+      message: "Could not save the declaration. Try again.",
+    }
+  }
 }

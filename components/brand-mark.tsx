@@ -48,9 +48,7 @@ export function BrandMark({
         className={cn("w-auto object-contain", HEIGHT[size])}
       />
       {showWordmark ? (
-        <span className="font-heading text-sm font-semibold tracking-tight">
-          ALR
-        </span>
+        <span className="text-sm font-semibold tracking-tight">ALR</span>
       ) : null}
     </span>
   )

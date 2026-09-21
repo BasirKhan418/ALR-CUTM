@@ -62,15 +62,17 @@ export function WorkspaceSkeleton() {
 
 export function AdminSkeleton() {
   return (
-    <div className="flex w-full flex-col gap-8">
-      <div className="flex flex-col gap-3">
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-4 w-80" />
-      </div>
-      <div className="grid gap-3 sm:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <Skeleton key={index} className="h-20 rounded-xl" />
-        ))}
+    <div className="flex w-full flex-col gap-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-8 w-28" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-8 w-56" />
+          <Skeleton className="h-8 w-28" />
+        </div>
       </div>
       <Skeleton className="h-72 rounded-xl" />
     </div>

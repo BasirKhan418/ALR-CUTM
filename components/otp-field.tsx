@@ -114,7 +114,7 @@ export function OtpField({
             onKeyDown={(event) => handleKeyDown(index, event)}
             onPaste={handlePaste}
             className={cn(
-              "h-12 w-full min-w-0 rounded-lg border bg-card text-center font-heading text-lg tabular-nums shadow-none outline-none transition-[border-color,box-shadow,transform] duration-150",
+              "h-12 w-full min-w-0 rounded-lg border bg-card text-center text-lg font-semibold tabular-nums shadow-none outline-none transition-[border-color,box-shadow,transform] duration-150",
               "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
               digit
                 ? "border-primary/35"

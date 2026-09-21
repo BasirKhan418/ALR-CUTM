@@ -22,10 +22,8 @@ export default async function HomePage() {
       </header>
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 py-16 md:px-10">
         <div className="animate-enter max-w-xl">
-          <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
-            Centurion University
-          </p>
-          <h1 className="mt-4 font-heading text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+          <p className="eyebrow">Centurion University</p>
+          <h1 className="mt-4 font-heading text-4xl font-semibold text-foreground md:text-5xl">
             Academic Learning Record
           </h1>
           <p className="mt-5 max-w-md text-base leading-7 text-muted-foreground md:text-lg">
@@ -47,21 +45,15 @@ export default async function HomePage() {
       <footer className="animate-enter-late border-t">
         <dl className="mx-auto grid w-full max-w-5xl gap-6 px-6 py-6 text-sm md:grid-cols-3 md:px-10">
           <div className="flex flex-col gap-1">
-            <dt className="text-xs tracking-wide text-muted-foreground uppercase">
-              Sign-in
-            </dt>
+            <dt className="eyebrow">Sign-in</dt>
             <dd className="font-medium">Campus email + OTP</dd>
           </div>
           <div className="flex flex-col gap-1">
-            <dt className="text-xs tracking-wide text-muted-foreground uppercase">
-              Google
-            </dt>
+            <dt className="eyebrow">Google</dt>
             <dd className="font-medium">Provisioned accounts only</dd>
           </div>
           <div className="flex flex-col gap-1">
-            <dt className="text-xs tracking-wide text-muted-foreground uppercase">
-              First visit
-            </dt>
+            <dt className="eyebrow">First visit</dt>
             <dd className="font-medium">One-time declaration</dd>
           </div>
         </dl>

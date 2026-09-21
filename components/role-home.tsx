@@ -25,46 +25,38 @@ export function RoleHome({
   purpose: string
   session: AppSession
 }) {
-  const tiles = [
+  const facts = [
     {
       label: "Campus",
       value: session.campusName,
-      detail: "Bound to this campus",
       icon: Building2Icon,
     },
     {
       label: "Last sign-in",
-      value: loginMethodLabel(session.loginMethod),
-      detail: session.lastLoginAt
-        ? formatDay(session.lastLoginAt)
-        : "This session",
+      value: session.lastLoginAt
+        ? `${loginMethodLabel(session.loginMethod)} · ${formatDay(session.lastLoginAt)}`
+        : loginMethodLabel(session.loginMethod),
       icon: KeyRoundIcon,
     },
     {
       label: "Declaration",
-      value: session.declarationAcceptedAt ? "Accepted" : "Pending",
-      detail: session.declarationAcceptedAt
-        ? formatDay(session.declarationAcceptedAt)
-        : "Required before work",
+      value: session.declarationAcceptedAt
+        ? `Accepted · ${formatDay(session.declarationAcceptedAt)}`
+        : "Pending",
       icon: ShieldCheckIcon,
     },
     {
       label: "Roles",
-      value: `${session.roles.length} assigned`,
-      detail: session.roles.map(roleLabel).join(" · "),
+      value: session.roles.map(roleLabel).join(" · "),
       icon: CheckCircle2Icon,
     },
   ]
 
   return (
-    <PageEnter className="flex w-full max-w-3xl flex-col gap-8">
+    <PageEnter className="flex w-full max-w-3xl flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-          {title} workspace
-        </p>
-        <h1 className="font-heading text-3xl font-semibold tracking-tight">
-          {session.name}
-        </h1>
+        <p className="eyebrow">{title} workspace</p>
+        <h1 className="font-heading text-3xl font-semibold">{session.name}</h1>
         <p className="max-w-xl text-sm leading-6 text-muted-foreground">
           {purpose}
         </p>
@@ -80,28 +72,22 @@ export function RoleHome({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {tiles.map((tile, index) => (
+      <dl className="grid gap-px overflow-hidden rounded-xl bg-border ring-1 ring-foreground/10 sm:grid-cols-2">
+        {facts.map((fact) => (
           <div
-            key={tile.label}
-            className="group rounded-xl bg-card p-4 ring-1 ring-foreground/10 transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-sm"
-            style={{ animationDelay: `${index * 40}ms` }}
+            key={fact.label}
+            className="flex items-start gap-3 bg-card p-4"
           >
-            <div className="flex items-start justify-between gap-3">
-              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                {tile.label}
-              </p>
-              <span className="flex size-8 items-center justify-center rounded-lg bg-accent text-accent-foreground transition-colors duration-150 group-hover:bg-primary group-hover:text-primary-foreground">
-                <tile.icon className="size-4" />
-              </span>
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+              <fact.icon className="size-4" />
+            </span>
+            <div className="min-w-0">
+              <dt className="eyebrow">{fact.label}</dt>
+              <dd className="mt-1 text-sm font-medium">{fact.value}</dd>
             </div>
-            <p className="mt-3 font-heading text-lg font-medium tracking-tight">
-              {tile.value}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">{tile.detail}</p>
           </div>
         ))}
-      </div>
+      </dl>
     </PageEnter>
   )
 }

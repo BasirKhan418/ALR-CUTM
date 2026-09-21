@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useActionState, useEffect, useState } from "react"
 import { FileCheckIcon, ShieldCheckIcon } from "lucide-react"
 import {
   acceptDeclaration,
@@ -24,21 +24,25 @@ export function DeclarationForm() {
   const [accepted, setAccepted] = useState(false)
   const [state, action] = useActionState(acceptDeclaration, INITIAL)
 
+  useEffect(() => {
+    if (state.ok && state.next) {
+      window.location.replace(state.next)
+    }
+  }, [state])
+
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-xl flex-col justify-center gap-8 px-6 py-16">
       <div className="animate-enter">
         <BrandMark />
       </div>
       <div className="flex flex-col gap-3 animate-enter">
-        <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-          First visit
-        </p>
-        <h1 className="font-heading text-3xl font-semibold tracking-tight">
+        <p className="eyebrow">First visit</p>
+        <h1 className="font-heading text-3xl font-semibold">
           One-time e-declaration
         </h1>
         <p className="text-sm leading-6 text-muted-foreground">
-          Read this once. We store your acceptance with IP and browser, then
-          open your workspace.
+          Read this once. Acceptance is stored on your account, so other
+          devices will not ask again.
         </p>
       </div>
       <div className="animate-enter-late overflow-hidden rounded-xl bg-card ring-1 ring-foreground/10">
@@ -47,7 +51,7 @@ export function DeclarationForm() {
             <FileCheckIcon className="size-4 text-primary" />
             Academic integrity
           </div>
-          <span className="font-mono text-[11px] text-muted-foreground">
+          <span className="font-mono text-xs text-muted-foreground">
             {DECLARATION_VERSION}
           </span>
         </div>
@@ -74,12 +78,16 @@ export function DeclarationForm() {
           </Field>
           {state.message ? <FieldError>{state.message}</FieldError> : null}
           <FieldDescription>
-            Later visits will not ask again unless an administrator resets it.
+            Later visits and other browsers will not ask again unless an
+            administrator resets it.
           </FieldDescription>
           <SubmitButton
             size="lg"
             className="h-10 w-full sm:w-auto"
-            pendingLabel="Saving acceptance…"
+            disabled={!accepted}
+            pendingLabel={
+              state.ok ? "Opening workspace…" : "Saving acceptance…"
+            }
           >
             <ShieldCheckIcon data-icon="inline-start" />
             Accept and continue

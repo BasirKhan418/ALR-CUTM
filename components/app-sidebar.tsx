@@ -8,15 +8,13 @@ import {
   Building2Icon,
   GraduationCapIcon,
   LandmarkIcon,
-  LogOutIcon,
   SettingsIcon,
   UserCheckIcon,
   UserCogIcon,
 } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
-import { SubmitButton } from "@/components/submit-button"
+import { SignOutButton } from "@/components/sign-out-button"
 import { UserAvatar } from "@/components/user-avatar"
-import { signOut } from "@/lib/actions/auth"
 import { APP_SHELL_NAV, type ShellRole } from "@/lib/domain/roles"
 import {
   Sidebar,
@@ -71,7 +69,7 @@ export function AppSidebar({
             >
               <BrandMark showWordmark={false} />
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-heading font-semibold">
+                <span className="truncate font-semibold tracking-tight">
                   ALR
                 </span>
                 <span className="truncate text-xs text-muted-foreground">
@@ -122,24 +120,17 @@ export function AppSidebar({
           <UserAvatar name={name} />
           <div className="grid min-w-0 flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
             <span className="truncate text-sm font-medium">{name}</span>
-            <span className="truncate text-[11px] text-muted-foreground">
+            <span className="truncate text-xs text-muted-foreground">
               {email}
             </span>
           </div>
         </div>
-        <form action={signOut} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
-          <SubmitButton
-            variant="ghost"
-            size="sm"
-            pendingLabel="Signing out…"
-            className="h-8 w-full justify-start text-muted-foreground hover:text-foreground group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
-          >
-            <LogOutIcon />
-            <span className="group-data-[collapsible=icon]:hidden">
-              Sign out
-            </span>
-          </SubmitButton>
-        </form>
+        <div className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+          <SignOutButton
+            collapsedLabel
+            className="group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+          />
+        </div>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

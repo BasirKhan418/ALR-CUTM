@@ -286,9 +286,10 @@ Codes expire in 10 minutes. Five wrong codes lock that email for 15 minutes.
 
 1. Sign in as `admin.bbsr@cutm.ac.in` or `khanbasir5555@gmail.com`.
 2. Open `/admin`.
-3. Create `created.user@cutm.ac.in` with role Student (or Faculty).
+3. Click **Add person**. Create `created.user@cutm.ac.in` with role Student (or Faculty) in the modal.
 4. Creating `random@gmail.com` must fail with the domain message.
-5. Sign out and sign in as that new CUTM email — it should ask for OTP.
+5. Row menu: deactivate, then activate. Delete is available for other people, not yourself.
+6. Sign out and sign in as that new CUTM email — it should ask for OTP.
 
 ---
 

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { AuditLog } from "@/lib/db/models/audit-log"
 import { Campus } from "@/lib/db/models/campus"
+import { Declaration } from "@/lib/db/models/declaration"
 import { User } from "@/lib/db/models/user"
 import { connectMongo } from "@/lib/db/mongo"
 import { hasRole, requireSession } from "@/lib/auth/guards"
@@ -85,7 +86,99 @@ export async function createUser(
   revalidatePath("/admin")
   return {
     ok: true,
-    message:
-      "They will sign in with email OTP or Google using this email.",
+    message: `${name} can now sign in with email OTP or Google.`,
   }
+}
+
+export type UserMutationState = {
+  ok: boolean
+  message?: string
+}
+
+async function requireAdmin() {
+  const session = await requireSession()
+  if (!hasRole(session, "ADMIN")) {
+    return { session: null as null, error: "Only Admin can manage users." }
+  }
+  return { session, error: null }
+}
+
+async function remainingActiveAdmins(exceptUserId: string): Promise<number> {
+  return User.countDocuments({
+    _id: { $ne: exceptUserId },
+    roles: "ADMIN",
+    active: true,
+  })
+}
+
+export async function setUserActive(
+  userId: string,
+  active: boolean
+): Promise<UserMutationState> {
+  const { session, error } = await requireAdmin()
+  if (!session) return { ok: false, message: error }
+
+  if (!userId) return { ok: false, message: "User is required." }
+  if (userId === session.userId && !active) {
+    return { ok: false, message: "You cannot deactivate your own account." }
+  }
+
+  await connectMongo()
+  const user = await User.findById(userId)
+  if (!user) return { ok: false, message: "That person was not found." }
+
+  if (!active && user.roles.includes("ADMIN")) {
+    const others = await remainingActiveAdmins(String(user._id))
+    if (others === 0) {
+      return { ok: false, message: "Keep at least one active admin." }
+    }
+  }
+
+  user.active = active
+  await user.save()
+  await AuditLog.create({
+    actorId: session.userId,
+    action: active ? "user.activate" : "user.deactivate",
+    payload: { userId, email: user.email },
+  })
+  revalidatePath("/admin")
+  return {
+    ok: true,
+    message: active
+      ? `${user.name} can sign in again.`
+      : `${user.name} can no longer sign in.`,
+  }
+}
+
+export async function deleteUser(userId: string): Promise<UserMutationState> {
+  const { session, error } = await requireAdmin()
+  if (!session) return { ok: false, message: error }
+
+  if (!userId) return { ok: false, message: "User is required." }
+  if (userId === session.userId) {
+    return { ok: false, message: "You cannot delete your own account." }
+  }
+
+  await connectMongo()
+  const user = await User.findById(userId)
+  if (!user) return { ok: false, message: "That person was not found." }
+
+  if (user.roles.includes("ADMIN")) {
+    const others = await remainingActiveAdmins(String(user._id))
+    if (others === 0) {
+      return { ok: false, message: "Keep at least one admin." }
+    }
+  }
+
+  const email = user.email
+  const name = user.name
+  await User.deleteOne({ _id: user._id })
+  await Declaration.deleteMany({ userId: user._id })
+  await AuditLog.create({
+    actorId: session.userId,
+    action: "user.delete",
+    payload: { userId, email },
+  })
+  revalidatePath("/admin")
+  return { ok: true, message: `${name} was removed.` }
 }

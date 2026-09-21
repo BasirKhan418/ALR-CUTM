@@ -39,10 +39,10 @@ export default function LoginPage({
         </div>
         <div className="absolute inset-0 flex flex-col justify-end gap-5 p-12">
           <div className="h-px w-12 bg-primary-foreground/35" />
-          <p className="text-xs font-medium tracking-[0.18em] text-primary-foreground/70 uppercase">
+          <p className="text-xs font-medium tracking-[0.08em] text-primary-foreground/70 uppercase">
             Centurion University
           </p>
-          <h2 className="max-w-md font-heading text-4xl font-semibold tracking-tight">
+          <h2 className="max-w-md font-heading text-4xl font-semibold">
             The official Learning Record
           </h2>
           <p className="max-w-md text-sm leading-6 text-primary-foreground/75">

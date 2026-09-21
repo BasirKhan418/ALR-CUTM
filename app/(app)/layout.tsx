@@ -1,8 +1,8 @@
 import type { ReactNode } from "react"
 import { Suspense } from "react"
+import { redirect } from "next/navigation"
 import { AppSidebar } from "@/components/app-sidebar"
 import { AppShellSkeleton } from "@/components/app-shell-skeleton"
-import { DeclarationForm } from "@/components/declaration-form"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { requireSession } from "@/lib/auth/guards"
@@ -20,7 +20,7 @@ async function AppShell({ children }: { children: ReactNode }) {
   const session = await requireSession()
 
   if (!session.declarationAcceptedAt) {
-    return <DeclarationForm />
+    redirect("/declare")
   }
 
   return (

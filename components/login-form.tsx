@@ -60,10 +60,8 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <FieldGroup>
         <div className="flex flex-col gap-2">
-          <p className="text-[11px] font-medium tracking-[0.16em] text-muted-foreground uppercase">
-            Campus sign-in
-          </p>
-          <h1 className="font-heading text-3xl font-semibold tracking-tight">
+          <p className="eyebrow">Campus sign-in</p>
+          <h1 className="font-heading text-3xl font-semibold">
             {step === "otp" ? "Enter the code" : "Sign in to ALR"}
           </h1>
           <p className="text-sm leading-6 text-muted-foreground">

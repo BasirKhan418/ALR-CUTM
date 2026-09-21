@@ -124,16 +124,24 @@
   }
   html {
     @apply font-sans;
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   body {
     @apply bg-background text-foreground antialiased;
   }
-  h1,
+  h1 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
   h2,
   h3,
   h4 {
-    font-family: var(--font-heading);
-    letter-spacing: -0.02em;
+    font-family: inherit;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
   }
 }
 
@@ -180,6 +188,14 @@
       transparent
     );
     animation: alr-shimmer 1.35s ease-in-out infinite;
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
   }
 
   .campus-panel {

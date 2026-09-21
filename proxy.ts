@@ -21,10 +21,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(home, request.url))
   }
 
-  if (APP_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
-    if (!hasSession) {
-      return NextResponse.redirect(new URL("/login", request.url))
-    }
+  const needsSession =
+    pathname === "/declare" ||
+    APP_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))
+
+  if (needsSession && !hasSession) {
+    return NextResponse.redirect(new URL("/login", request.url))
   }
 
   return NextResponse.next()
@@ -33,6 +35,7 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/login",
+    "/declare",
     "/student/:path*",
     "/faculty/:path*",
     "/mentor/:path*",
