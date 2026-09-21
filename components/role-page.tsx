@@ -1,12 +1,23 @@
-import { connection } from "next/server"
+import { Forbidden } from "@/components/forbidden"
 import { RoleHome } from "@/components/role-home"
-import { APP_SHELL_NAV, type ShellRole } from "@/lib/domain/roles"
+import { requireSession } from "@/lib/auth/guards"
+import { APP_SHELL_NAV, firstShellHref, type ShellRole } from "@/lib/domain/roles"
 
 export async function RolePage({ role }: { role: ShellRole }) {
-  await connection()
+  const session = await requireSession()
   const item = APP_SHELL_NAV.find((nav) => nav.role === role)
   if (!item) {
     throw new Error(`Unknown shell role: ${role}`)
   }
-  return <RoleHome title={item.label} purpose={item.purpose} />
+  if (!session.roles.includes(role)) {
+    return <Forbidden homeHref={firstShellHref(session.roles)} />
+  }
+  return (
+    <RoleHome
+      role={role}
+      title={item.label}
+      purpose={item.purpose}
+      session={session}
+    />
+  )
 }

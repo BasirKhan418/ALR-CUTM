@@ -65,6 +65,28 @@ export const APP_SHELL_NAV = [
 
 export type ShellRole = (typeof APP_SHELL_NAV)[number]["role"]
 
+export const PROVISIONABLE_ROLES = ROLES.filter(
+  (role) => role !== "INDUSTRY_SUPERVISOR" && role !== "EXAM_CELL"
+)
+
+export function isRole(value: string): value is Role {
+  return ROLES.includes(value as Role)
+}
+
 export function isShellRole(value: string | undefined): value is ShellRole {
   return APP_SHELL_NAV.some((item) => item.role === value)
+}
+
+export function isProvisionableRole(value: string): value is Role {
+  return PROVISIONABLE_ROLES.includes(value as (typeof PROVISIONABLE_ROLES)[number])
+}
+
+export function shellRolesFor(roles: readonly string[]): ShellRole[] {
+  return APP_SHELL_NAV.filter((item) => roles.includes(item.role)).map(
+    (item) => item.role
+  )
+}
+
+export function firstShellHref(roles: readonly string[]): string {
+  return APP_SHELL_NAV.find((item) => roles.includes(item.role))?.href ?? "/student"
 }

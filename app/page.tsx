@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { cacheLife } from "next/cache"
+import { ArrowRightIcon } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -10,7 +11,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
-      <header className="flex items-center justify-between px-6 py-5 md:px-10">
+      <header className="flex items-center justify-between border-b px-6 py-4 md:px-10">
         <BrandMark preload />
         <Link
           href="/login"
@@ -19,23 +20,52 @@ export default async function HomePage() {
           Sign in
         </Link>
       </header>
-      <main className="mx-auto flex w-full max-w-xl flex-1 flex-col justify-center gap-6 px-6 pb-24">
-        <p className="text-sm font-medium text-muted-foreground">
-          Centurion University of Technology and Management
-        </p>
-        <h1 className="font-heading text-4xl font-semibold text-foreground md:text-5xl">
-          ALR — Learning Record
-        </h1>
-        <p className="max-w-lg text-lg leading-7 text-muted-foreground">
-          A quiet workspace for classroom, practice, workshop, and capstone
-          records — with committee evaluation and compulsory ALR credit.
-        </p>
-        <div>
-          <Link href="/login" className={cn(buttonVariants(), "inline-flex")}>
-            Continue to sign in
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center px-6 py-16 md:px-10">
+        <div className="animate-enter max-w-xl">
+          <p className="text-[11px] font-medium tracking-[0.18em] text-muted-foreground uppercase">
+            Centurion University
+          </p>
+          <h1 className="mt-4 font-heading text-4xl font-semibold tracking-tight text-foreground md:text-5xl">
+            Academic Learning Record
+          </h1>
+          <p className="mt-5 max-w-md text-base leading-7 text-muted-foreground md:text-lg">
+            Classroom, workshop, and capstone work — signed on campus, scored
+            in the open, credited after committee.
+          </p>
+          <Link
+            href="/login"
+            className={cn(
+              buttonVariants({ size: "lg" }),
+              "mt-8 h-10 inline-flex [&_svg]:transition-transform [&_svg]:duration-150 hover:[&_svg]:translate-x-0.5"
+            )}
+          >
+            Sign in
+            <ArrowRightIcon data-icon="inline-end" />
           </Link>
         </div>
       </main>
+      <footer className="animate-enter-late border-t">
+        <dl className="mx-auto grid w-full max-w-5xl gap-6 px-6 py-6 text-sm md:grid-cols-3 md:px-10">
+          <div className="flex flex-col gap-1">
+            <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+              Sign-in
+            </dt>
+            <dd className="font-medium">Campus email + OTP</dd>
+          </div>
+          <div className="flex flex-col gap-1">
+            <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+              Google
+            </dt>
+            <dd className="font-medium">Provisioned accounts only</dd>
+          </div>
+          <div className="flex flex-col gap-1">
+            <dt className="text-xs tracking-wide text-muted-foreground uppercase">
+              First visit
+            </dt>
+            <dd className="font-medium">One-time declaration</dd>
+          </div>
+        </dl>
+      </footer>
     </div>
   )
 }

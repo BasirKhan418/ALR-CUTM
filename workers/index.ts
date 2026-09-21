@@ -1,6 +1,7 @@
 import { Worker } from "bullmq"
 import { QUEUE_NAMES } from "@/lib/queue/queues"
 import { getValkeyQueue } from "@/lib/valkey"
+import { processNotify } from "@/workers/processors/notify"
 import { processPing } from "@/workers/processors/ping"
 
 const connection = getValkeyQueue()
@@ -15,20 +16,29 @@ const maintenanceWorker = new Worker(
   { connection }
 )
 
-maintenanceWorker.on("ready", () => {
-  console.log(`[worker] listening on ${QUEUE_NAMES.maintenance}`)
-})
+const notifyWorker = new Worker(
+  QUEUE_NAMES.notify,
+  async (job) => processNotify(job),
+  { connection }
+)
 
-maintenanceWorker.on("completed", (job) => {
-  console.log(`[worker] completed ${job.name} ${job.id}`)
-})
+function listen(worker: Worker, queue: string) {
+  worker.on("ready", () => {
+    console.log(`[worker] listening on ${queue}`)
+  })
+  worker.on("completed", (job) => {
+    console.log(`[worker] completed ${job.name} ${job.id}`)
+  })
+  worker.on("failed", (job, error) => {
+    console.error(`[worker] failed ${job?.name} ${job?.id}`, error)
+  })
+}
 
-maintenanceWorker.on("failed", (job, error) => {
-  console.error(`[worker] failed ${job?.name} ${job?.id}`, error)
-})
+listen(maintenanceWorker, QUEUE_NAMES.maintenance)
+listen(notifyWorker, QUEUE_NAMES.notify)
 
 async function shutdown() {
-  await maintenanceWorker.close()
+  await Promise.all([maintenanceWorker.close(), notifyWorker.close()])
   connection.disconnect()
   process.exit(0)
 }

@@ -4,9 +4,9 @@ Update this file at the end of every milestone implementation. It is the handoff
 
 ## Current State
 
-Status: `PLANNING`
+Status: `M01 shipped`
 
-We have the ALR compiled-review prompt kit, domain bible, architecture document, and milestone prompts. Application implementation has not started yet.
+M00 foundation and M01 identity/auth are in the tree. Sign-in is email + OTP and optional Google. Sessions are opaque `alr_session` cookies in Valkey (7 days). No JWT, no passwords, no Better Auth.
 
 ## What We Are Building
 
@@ -35,8 +35,8 @@ ALR is a Next.js 16 digital Learning Record platform for Centurion University. I
 
 | Milestone | Status | Shipped | Notes |
 | --- | --- | --- | --- |
-| M00 Foundation | Not started | - | Must create infra, domain constants, worker ping, seed campuses |
-| M01 Identity/Auth | Not started | - | Requires M00. Email OTP + Google only |
+| M00 Foundation | Done | Docker compose, domain constants, Mongo/Valkey/BullMQ, role shells, CUTM theme + logo | Health and worker ping |
+| M01 Identity/Auth | Done | Email OTP + Google, Valkey sessions (7d), declaration, admin provision | No JWT / passwords |
 | M02 Catalog/Mapping | Not started | - | Requires M01 |
 | M03 LR Submissions | Not started | - | Requires M02 |
 | M04 Evaluation/Scoring | Not started | - | Requires M03 |
@@ -55,18 +55,13 @@ Use only these status values:
 
 ## Environment Checklist
 
-M00 must create `.env.example` with:
+M00 + M01 `.env.example`:
 
 ```bash
 MONGODB_URI=mongodb://localhost:27017/alr
 VALKEY_URL=redis://localhost:6379
 FILE_DIR=./.data/files
 APP_URL=http://localhost:3000
-```
-
-M01 adds:
-
-```bash
 AUTH_SECRET=replace-with-local-secret
 SESSION_TTL_DAYS=7
 OTP_TTL_SECONDS=600
@@ -98,8 +93,6 @@ Rules:
 
 ## Command Checklist
 
-Use these as milestone acceptance commands when relevant:
-
 ```bash
 npm run lint
 npm run build
@@ -107,15 +100,19 @@ npm run dev
 npm run worker
 npm run seed:m00
 npm run seed:m01
-npm run seed:m02
-docker compose up -d
 ```
 
-Do not invent seed commands unless the milestone needs seed data.
+M01 commands run:
+
+- `npm run lint` — pass
+- `npm run build` — pass (landing cached; dashboards PPR; Google/health dynamic)
+- `npm run seed:m01` — pass (Atlas)
+
+Restart `npm run dev` and `npm run worker` after pulling M01 so `AUTH_SECRET` and the notify worker load.
+
+Local test steps (what to run, where OTP prints, seed emails, domain rules): [`docs/TESTING.md`](TESTING.md).
 
 ## Domain Coverage Checklist
-
-Mark each item when it has a real implementation home, not just a note.
 
 | Item | Status | Milestone |
 | --- | --- | --- |
@@ -146,14 +143,14 @@ Mark each item when it has a real implementation home, not just a note.
 | Six-campus analytics | Planned | M08 |
 | Booklet-style PDF export | Planned | M08 |
 | Archival policy explicit | Planned | M09 |
-| One-time declaration only | Planned | M01, M09 |
-| Email + OTP sign-in | Planned | M01 |
-| Sign in with Google (provisioned emails only) | Planned | M01 |
+| One-time declaration only | Implemented | M01, M09 |
+| Email + OTP sign-in | Implemented | M01 |
+| Sign in with Google (provisioned emails only) | Implemented | M01 |
 | Plagiarism headroom health | Planned | M06, M09 |
 
 ## Last Completed Milestone
 
-None.
+M01 Identity/Auth
 
 ## Known Gaps / Decisions
 
@@ -162,7 +159,9 @@ None.
 - Real LMS integration for Classroom components is not selected. Use manual entry first.
 - Real academic ERP integration is not selected. Use exam-cell export first.
 - File storage starts local under `FILE_DIR`; S3/MinIO can be added later only when needed.
-- Auth is email + OTP and Google only. Local OTP uses worker console log until SMTP is set. Google needs real `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` to test the OAuth button.
+- Auth is email + OTP and Google only. Local OTP uses worker/Next console log until SMTP is set. Google needs real `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` to enable the button.
+- Sign-in accepts `@cutm.ac.in`, `@cutm.edu.in`, dummy admin `khanbasir5555@gmail.com`, and OTP Gmail `khanbasir5556@gmail.com`. Seed dummy users skip OTP and enter directly until invitation-based OTP ships. Other Gmail addresses are rejected.
+- SMTP send is a small STARTTLS helper; if it fails, fix env or leave SMTP unset and use console OTP.
 
 ## How To Update This Tracker
 
@@ -174,4 +173,3 @@ At the end of a milestone:
 4. Add commands that passed.
 5. Add any blocker or deferred decision under Known Gaps.
 6. Update the Domain Coverage Checklist from `Planned` to `Implemented` for completed items.
-
