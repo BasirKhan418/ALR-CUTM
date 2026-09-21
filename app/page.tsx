@@ -11,7 +11,7 @@ export default async function HomePage() {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <header className="flex items-center justify-between px-6 py-5 md:px-10">
-        <BrandMark />
+        <BrandMark preload />
         <Link
           href="/login"
           className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
