@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { APP_SHELL_NAV } from "@/lib/domain/roles"
+import { RoleSwitcher } from "@/components/role-switcher"
+import { APP_SHELL_NAV, type ShellRole } from "@/lib/domain/roles"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -30,10 +31,12 @@ export function SiteHeader({
   name,
   email,
   campusName,
+  roles,
 }: {
   name: string
   email: string
   campusName: string
+  roles: ShellRole[]
 }) {
   const pathname = usePathname()
 
@@ -43,6 +46,7 @@ export function SiteHeader({
       <Separator orientation="vertical" className="h-4" />
       <p className="text-sm font-medium">{titleFor(pathname)}</p>
       <div className="ml-auto flex items-center gap-2">
+        <RoleSwitcher roles={roles} />
         <Badge variant="secondary" className="hidden h-6 gap-1 sm:inline-flex">
           <MapPinIcon />
           {campusName}

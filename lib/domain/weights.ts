@@ -46,9 +46,39 @@ export const RECORD_WEIGHTS: Record<RecordType, RecordWeight> = {
   },
 }
 
-export const CLASSROOM_COMPOSITE_DEFAULT = {
+export const CLASSROOM_COMPOSITE_KEYS = [
+  "assignment",
+  "presentation",
+  "midsem",
+  "record",
+] as const
+
+export type ClassroomCompositeKey = (typeof CLASSROOM_COMPOSITE_KEYS)[number]
+
+export type ClassroomCompositeWeights = Record<ClassroomCompositeKey, number>
+
+export const CLASSROOM_COMPOSITE_DEFAULT: ClassroomCompositeWeights = {
   assignment: 2.5,
   presentation: 2.5,
   midsem: 2.5,
   record: 2.5,
-} as const
+}
+
+export const CLASSROOM_COMPOSITE_LABELS: Record<ClassroomCompositeKey, string> = {
+  assignment: "Assignment",
+  presentation: "Presentation",
+  midsem: "Mid-sem",
+  record: "Record",
+}
+
+export const CLASSROOM_COMPOSITE_SETTING = "classroom_composite_weights"
+
+export function classroomCompositeSum(weights: ClassroomCompositeWeights): number {
+  return CLASSROOM_COMPOSITE_KEYS.reduce((sum, key) => sum + Number(weights[key] ?? 0), 0)
+}
+
+export function isValidClassroomComposites(
+  weights: ClassroomCompositeWeights
+): boolean {
+  return Math.abs(classroomCompositeSum(weights) - 10) < 0.001
+}

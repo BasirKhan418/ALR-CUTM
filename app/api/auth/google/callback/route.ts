@@ -6,8 +6,8 @@ import {
   exchangeGoogleCode,
   googleEnabled,
 } from "@/lib/auth/google"
-import { findOrCreateAllowedUser } from "@/lib/auth/provision"
 import { User } from "@/lib/db/models/user"
+import { connectMongo } from "@/lib/db/mongo"
 import { isAllowedSignInEmail } from "@/lib/domain/email"
 import { firstShellHref } from "@/lib/domain/roles"
 
@@ -47,7 +47,8 @@ export async function GET(request: Request) {
     redirect("/login?error=domain")
   }
 
-  const user = await findOrCreateAllowedUser(email)
+  await connectMongo()
+  const user = await User.findOne({ email })
   if (!user || !user.active) {
     redirect("/login?error=not_provisioned")
   }

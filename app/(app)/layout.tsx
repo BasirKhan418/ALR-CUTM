@@ -3,6 +3,7 @@ import { Suspense } from "react"
 import { redirect } from "next/navigation"
 import { AppSidebar } from "@/components/app-sidebar"
 import { AppShellSkeleton } from "@/components/app-shell-skeleton"
+import { RoleQuerySync } from "@/components/role-query-sync"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { requireSession } from "@/lib/auth/guards"
@@ -23,6 +24,8 @@ async function AppShell({ children }: { children: ReactNode }) {
     redirect("/declare")
   }
 
+  const roles = shellRolesFor(session.roles)
+
   return (
     <SidebarProvider
       style={
@@ -31,8 +34,9 @@ async function AppShell({ children }: { children: ReactNode }) {
         } as React.CSSProperties
       }
     >
+      <RoleQuerySync roles={roles} />
       <AppSidebar
-        roles={shellRolesFor(session.roles)}
+        roles={roles}
         name={session.name}
         email={session.email}
         campusName={session.campusName}
@@ -43,6 +47,7 @@ async function AppShell({ children }: { children: ReactNode }) {
           name={session.name}
           email={session.email}
           campusName={session.campusName}
+          roles={roles}
         />
         <div className="flex flex-1 flex-col p-6 md:p-8">{children}</div>
       </SidebarInset>

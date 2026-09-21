@@ -1,5 +1,5 @@
 import { getEnv, isGoogleConfigured } from "@/lib/config/env"
-import { getValkey } from "@/lib/valkey"
+import { readyValkey } from "@/lib/valkey"
 import { OAUTH_STATE_SECONDS } from "@/lib/auth/constants"
 import { randomId } from "@/lib/auth/crypto"
 
@@ -17,7 +17,7 @@ export async function createGoogleAuthUrl(): Promise<string> {
     throw new Error("Google sign-in is not configured")
   }
   const state = randomId(16)
-  await getValkey().set(`oauth:state:${state}`, "1", "EX", OAUTH_STATE_SECONDS)
+  await (await readyValkey()).set(`oauth:state:${state}`, "1", "EX", OAUTH_STATE_SECONDS)
   const url = new URL(AUTH_URL)
   url.searchParams.set("client_id", env.GOOGLE_CLIENT_ID)
   url.searchParams.set("redirect_uri", env.GOOGLE_REDIRECT_URI)
@@ -31,9 +31,10 @@ export async function createGoogleAuthUrl(): Promise<string> {
 export async function consumeOAuthState(state: string | null): Promise<boolean> {
   if (!state) return false
   const key = `oauth:state:${state}`
-  const exists = await getValkey().get(key)
+  const valkey = await readyValkey()
+  const exists = await valkey.get(key)
   if (!exists) return false
-  await getValkey().del(key)
+  await valkey.del(key)
   return true
 }
 

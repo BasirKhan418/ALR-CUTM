@@ -24,7 +24,7 @@ export default async function HomePage() {
         <div className="animate-enter max-w-xl">
           <p className="eyebrow">Centurion University</p>
           <h1 className="mt-4 font-heading text-4xl font-semibold text-foreground md:text-5xl">
-            Academic Learning Record
+            ALR — Learning Record
           </h1>
           <p className="mt-5 max-w-md text-base leading-7 text-muted-foreground md:text-lg">
             Classroom, workshop, and capstone work — signed on campus, scored

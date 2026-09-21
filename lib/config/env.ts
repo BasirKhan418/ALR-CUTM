@@ -82,7 +82,7 @@ export function isGoogleConfigured(): boolean {
 }
 
 export function isSmtpConfigured(env = getEnv()): boolean {
-  return Boolean(env.SMTP_HOST)
+  return Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS)
 }
 
 export function isLocalhostApp(env = getEnv()): boolean {

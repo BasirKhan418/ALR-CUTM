@@ -16,6 +16,7 @@ export type AppSession = SessionRecord & {
   email: string
   campusName: string
   campusSlug: string
+  departmentId: string | null
   lastLoginAt: string | null
 }
 
@@ -43,6 +44,7 @@ export async function getSession(): Promise<AppSession | null> {
     email: user.email,
     campusName: campus?.name ?? "Unknown campus",
     campusSlug: campus?.slug ?? "",
+    departmentId: user.departmentId ? String(user.departmentId) : null,
     lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toISOString() : null,
     loginMethod: user.lastLoginMethod ?? record.loginMethod,
   }

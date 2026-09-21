@@ -13,6 +13,7 @@ import {
   UserCogIcon,
 } from "lucide-react"
 import { BrandMark } from "@/components/brand-mark"
+import { setActiveRole } from "@/lib/actions/auth"
 import { SignOutButton } from "@/components/sign-out-button"
 import { UserAvatar } from "@/components/user-avatar"
 import { APP_SHELL_NAV, type ShellRole } from "@/lib/domain/roles"
@@ -99,7 +100,12 @@ export function AppSidebar({
                       tooltip={item.label}
                       className="h-9 rounded-lg transition-[background-color,box-shadow] duration-150 data-active:shadow-[inset_2px_0_0_0_var(--sidebar-primary)]"
                       render={
-                        <Link href={`${item.href}?role=${item.role}`} />
+                        <Link
+                          href={`${item.href}?role=${item.role}`}
+                          onClick={() => {
+                            void setActiveRole(item.role)
+                          }}
+                        />
                       }
                     >
                       <span className="flex size-7 items-center justify-center rounded-md bg-foreground/6 text-sidebar-foreground transition-colors duration-150 group-data-active/menu-button:bg-sidebar-primary group-data-active/menu-button:text-sidebar-primary-foreground">

@@ -7,8 +7,16 @@ import { Declaration } from "@/lib/db/models/declaration"
 import { User } from "@/lib/db/models/user"
 import { connectMongo } from "@/lib/db/mongo"
 import { notifyQueue } from "@/lib/queue/queues"
+import { cookies } from "next/headers"
 import { isLocalhostApp } from "@/lib/config/env"
-import { OTP_GENERIC_SENT, LOCK_SECONDS } from "@/lib/auth/constants"
+import {
+  HOME_COOKIE,
+  LOCK_SECONDS,
+  OTP_GENERIC_SENT,
+  ROLE_COOKIE,
+} from "@/lib/auth/constants"
+import { sessionCookieOptions } from "@/lib/auth/session"
+import { deliverOtpEmail } from "@/lib/mail/otp"
 import { getSession, requireSession } from "@/lib/auth/guards"
 import { findOrCreateAllowedUser } from "@/lib/auth/provision"
 import {
@@ -17,7 +25,11 @@ import {
   isDevDirectLoginEmail,
   normalizeEmail,
 } from "@/lib/domain/email"
-import { APP_SHELL_NAV, firstShellHref } from "@/lib/domain/roles"
+import {
+  APP_SHELL_NAV,
+  firstShellHref,
+  isShellRole,
+} from "@/lib/domain/roles"
 import {
   generateOtp,
   isOtpLocked,
@@ -91,13 +103,20 @@ export async function requestOtp(
 
   const code = generateOtp()
   await storeOtp(email, code)
-  try {
-    await notifyQueue().add("auth.otp", { to: email, code })
-  } catch {
-    // Worker may be down; localhost still prints the code below.
-  }
   if (isLocalhostApp()) {
-    console.log(`[otp] ${email} ${code}`)
+    console.log(`[otp] ${email} ${code} (dev log)`)
+  }
+  try {
+    await deliverOtpEmail(email, code)
+    console.log(`[otp] smtp sent ${email}`)
+  } catch (error) {
+    console.error("[otp] smtp failed", error)
+    try {
+      await notifyQueue().add("auth.otp", { to: email, code })
+      console.error("[otp] queued worker retry")
+    } catch (queueError) {
+      console.error("[otp] queue failed", queueError)
+    }
   }
 
   return { ok: true, message: OTP_GENERIC_SENT, email, step: "otp" }
@@ -160,6 +179,17 @@ export async function verifyOtp(
   await user.save()
   await completeLogin(user, "OTP")
   redirect(firstShellHref(user.roles))
+}
+
+export async function setActiveRole(role: string): Promise<void> {
+  const session = await requireSession()
+  if (!isShellRole(role) || !session.roles.includes(role)) return
+  const href =
+    APP_SHELL_NAV.find((item) => item.role === role)?.href ?? "/student"
+  const jar = await cookies()
+  const base = sessionCookieOptions()
+  jar.set(HOME_COOKIE, href, base)
+  jar.set(ROLE_COOKIE, role, { ...base, httpOnly: false })
 }
 
 export async function signOut(): Promise<void> {

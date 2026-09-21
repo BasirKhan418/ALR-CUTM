@@ -39,3 +39,26 @@ export const SUBJECT_RECORD_MAP: Record<CombinationCode, readonly RecordType[]> 
 export function requiredRecordTypes(code: CombinationCode): readonly RecordType[] {
   return SUBJECT_RECORD_MAP[code]
 }
+
+export const COMBINATION_LABELS: Record<CombinationCode, string> = {
+  THEORY: "Theory",
+  MOOC: "MOOC",
+  PRACTICE: "Practice",
+  WORKSHOP: "Workshop",
+  PROJECT: "Project",
+  THESIS: "Thesis",
+  INTERNSHIP: "Internship",
+  THEORY_PRACTICE: "Theory + Practice",
+  THEORY_PROJECT: "Theory + Project",
+  THEORY_PRACTICE_PROJECT: "Theory + Practice + Project",
+  PRACTICE_PROJECT: "Practice + Project",
+  THEORY_WORKSHOP: "Theory + Workshop",
+}
+
+export function combinationLabel(code: CombinationCode | string): string {
+  return COMBINATION_LABELS[code as CombinationCode] ?? code
+}
+
+export function isCombinationCode(value: string): value is CombinationCode {
+  return (COMBINATION_CODES as readonly string[]).includes(value)
+}

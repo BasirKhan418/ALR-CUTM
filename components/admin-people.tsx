@@ -47,6 +47,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { AdminCatalogNav } from "@/components/admin-catalog-nav"
 import { formatWhen, loginMethodLabel, roleLabel } from "@/lib/ui/format"
 
 export type AdminPerson = {
@@ -119,6 +120,7 @@ export function AdminPeople({
             {people.length} provisioned · {activeCount} active · {neverSignedIn}{" "}
             never signed in
           </p>
+          <AdminCatalogNav current="/admin" />
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="relative">

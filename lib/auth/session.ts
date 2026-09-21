@@ -1,6 +1,6 @@
 import { cookies } from "next/headers"
 import { getEnv } from "@/lib/config/env"
-import { getValkey } from "@/lib/valkey"
+import { readyValkey } from "@/lib/valkey"
 import type { LoginMethod } from "@/lib/db/models/user"
 import type { Role } from "@/lib/domain/roles"
 import { firstShellHref } from "@/lib/domain/roles"
@@ -40,7 +40,7 @@ export async function readSessionRecord(): Promise<{
   const jar = await cookies()
   const sid = parseSessionCookie(jar.get(SESSION_COOKIE)?.value)
   if (!sid) return null
-  const raw = await getValkey().get(sessionKey(sid))
+  const raw = await (await readyValkey()).get(sessionKey(sid))
   if (!raw) return null
   try {
     const record = JSON.parse(raw) as SessionRecord
@@ -55,7 +55,7 @@ export async function writeSessionRecord(
   sid: string,
   record: SessionRecord
 ): Promise<void> {
-  await getValkey().set(
+  await (await readyValkey()).set(
     sessionKey(sid),
     JSON.stringify(record),
     "EX",
@@ -95,7 +95,10 @@ export async function refreshSessionIfNeeded(
   }
   const next = { ...record, createdAt: Date.now() }
   await writeSessionRecord(sid, next)
-  await attachSessionCookies(sid, firstShellHref(record.roles))
+  const jar = await cookies()
+  const home = jar.get(HOME_COOKIE)?.value || firstShellHref(record.roles)
+  const role = jar.get(ROLE_COOKIE)?.value
+  await attachSessionCookies(sid, home, role)
   return next
 }
 
@@ -103,7 +106,7 @@ export async function destroySession(): Promise<void> {
   const jar = await cookies()
   const sid = parseSessionCookie(jar.get(SESSION_COOKIE)?.value)
   if (sid) {
-    await getValkey().del(sessionKey(sid))
+    await (await readyValkey()).del(sessionKey(sid))
   }
   jar.delete(SESSION_COOKIE)
   jar.delete(HOME_COOKIE)

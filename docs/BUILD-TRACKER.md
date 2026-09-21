@@ -4,9 +4,9 @@ Update this file at the end of every milestone implementation. It is the handoff
 
 ## Current State
 
-Status: `M01 shipped`
+Status: `M02 shipped`
 
-M00 foundation and M01 identity/auth are in the tree. Sign-in is email + OTP and optional Google. Sessions are opaque `alr_session` cookies in Valkey (7 days). No JWT, no passwords, no Better Auth.
+M00–M02 are in the tree. Sign-in is email + OTP and optional Google. Sessions are opaque `alr_session` cookies in Valkey (7 days). Courses use the 12-way combination map; students can see required records but cannot submit yet.
 
 ## What We Are Building
 
@@ -36,8 +36,8 @@ ALR is a Next.js 16 digital Learning Record platform for Centurion University. I
 | Milestone | Status | Shipped | Notes |
 | --- | --- | --- | --- |
 | M00 Foundation | Done | Docker compose, domain constants, Mongo/Valkey/BullMQ, role shells, CUTM theme + logo | Health and worker ping |
-| M01 Identity/Auth | Done | Email OTP + Google, Valkey sessions (7d), declaration, admin provision | No JWT / passwords |
-| M02 Catalog/Mapping | Not started | - | Requires M01 |
+| M01 Identity/Auth | Done | Email OTP + Google, Valkey sessions (7d), declaration, admin provision, multi-role cookie/`?role=` switcher | Google is find-only; OTP auto-creates allowed CUTM emails per TESTING.md |
+| M02 Catalog/Mapping | Done | 12-way combination setup, derived record configs, MOOC delivery, enroll, Faculty vs Mentor, classroom split, student my-courses, admin terms + campus filter | Students cannot submit yet |
 | M03 LR Submissions | Not started | - | Requires M02 |
 | M04 Evaluation/Scoring | Not started | - | Requires M03 |
 | M05 Major Deliverables | Not started | - | Requires M04 basics and auth |
@@ -100,13 +100,14 @@ npm run dev
 npm run worker
 npm run seed:m00
 npm run seed:m01
+npm run seed:m02
 ```
 
-M01 commands run:
+M02 commands run:
 
 - `npm run lint` — pass
-- `npm run build` — pass (landing cached; dashboards PPR; Google/health dynamic)
-- `npm run seed:m01` — pass (Atlas)
+- `npm run build` — pass (catalog pages PPR; course detail dynamic)
+- `npm run seed:m02` — pass (12 Bhubaneswar courses, student enrolled in THEORY_PRACTICE_PROJECT)
 
 Restart `npm run dev` and `npm run worker` after pulling M01 so `AUTH_SECRET` and the notify worker load.
 
@@ -116,10 +117,10 @@ Local test steps (what to run, where OTP prints, seed emails, domain rules): [`d
 
 | Item | Status | Milestone |
 | --- | --- | --- |
-| 12-way subject mapping | Planned | M02 |
-| MOOC course type | Planned | M02 |
+| 12-way subject mapping | Implemented | M02 |
+| MOOC course type | Implemented | M02 |
 | Multi-record subject submission | Planned | M03 |
-| Normalization formula visible in UI | Planned | M02, M04 |
+| Normalization formula visible in UI | Implemented | M02, M04 |
 | Classroom 4 components | Planned | M04 |
 | Workshop hours logging | Planned | M03 |
 | Books/Manuals Referred | Planned | M03 |
@@ -139,7 +140,7 @@ Local test steps (what to run, where OTP prints, seed emails, domain rules): [`d
 | Program-wise committee workflow | Planned | M07 |
 | 1 credit/year ledger | Planned | M07 |
 | Exam-cell export | Planned | M07 |
-| Mentor PO/PSO role | Planned | M02, M07 |
+| Mentor PO/PSO role | Implemented | M02, M07 |
 | Six-campus analytics | Planned | M08 |
 | Booklet-style PDF export | Planned | M08 |
 | Archival policy explicit | Planned | M09 |
@@ -150,7 +151,7 @@ Local test steps (what to run, where OTP prints, seed emails, domain rules): [`d
 
 ## Last Completed Milestone
 
-M01 Identity/Auth
+M02 Catalog/Mapping
 
 ## Known Gaps / Decisions
 
