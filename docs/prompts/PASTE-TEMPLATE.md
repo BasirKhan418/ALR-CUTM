@@ -48,6 +48,7 @@ During coding:
 - Keep private data dynamic; do not use "use cache" for sessions, scores, dashboards, sign-offs, cases, or analytics.
 - Use BullMQ for long jobs and Valkey only for sessions, hashed OTPs, OAuth state, locks, rate limits, job progress, and token TTL mirrors.
 - Auth is email + OTP and Sign in with Google only. Do not add Better Auth, passwords, or TOTP.
+- Reuse the M00 theme tokens and BrandMark. Do not invent a new palette or font.
 
 When done:
 1. Update @docs/BUILD-TRACKER.md.

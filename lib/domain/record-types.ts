@@ -1,0 +1,10 @@
+export const RECORD_TYPES = [
+  "CLASSROOM_LEARNING",
+  "APPLIED_ACTION_LEARNING",
+  "ACTION_LEARNING",
+  "PROJECT_REPORT",
+  "THESIS_REPORT",
+  "INTERNSHIP_REPORT",
+] as const
+
+export type RecordType = (typeof RECORD_TYPES)[number]

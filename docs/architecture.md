@@ -236,6 +236,21 @@ Industry token routes authenticate the **token**, not a user session.
 - Empty / error / forbidden states on every list.
 - Desktop first; tables must not overflow without a scroll container.
 
+## Theme (locked in M00)
+
+Do not invent a new palette or font per screen. Use the CSS tokens in `app/globals.css`.
+
+| Token | Use |
+| --- | --- |
+| `--primary` | Forest ink. Buttons, brand mark, login panel |
+| `--background` | Warm paper |
+| `--muted-foreground` | Secondary copy |
+| `font-sans` | Source Sans 3. Body, forms, tables |
+| `font-heading` | Source Serif 4. Page titles only |
+| `BrandMark` | The only logo treatment (`components/brand-mark.tsx`) |
+
+Keep the UI quiet: few colors, no extra gradients, no new chart libraries for decoration.
+
 ## Env
 
 M00 must create `.env.example` with local defaults:
