@@ -4,9 +4,9 @@ Update this file at the end of every milestone implementation. It is the handoff
 
 ## Current State
 
-Status: `M05 shipped`
+Status: `M06 shipped`
 
-M00–M05 are in the tree. Sign-in is email + OTP and optional Google. Sessions are opaque `alr_session` cookies in Valkey (7 days). Courses use the 12-way combination map. Students file Classroom, Applied, and Workshop entries, plus one shared Major Deliverable per Project / Internship / PG Thesis (Word + PDF, sequential sign-off). Assigned faculty score Applied/Workshop rubrics and Classroom composites. Subject contributions are always normalized — never a raw average. Internship totals come from internal/50 + external/50, each half of 30. PG Thesis evaluation is gated on an approved Paper Publication Report.
+M00–M06 are in the tree. Sign-in is email + OTP and optional Google. Sessions are opaque `alr_session` cookies in Valkey (7 days). Courses use the 12-way combination map. Students file Classroom, Applied, and Workshop entries, plus one shared Major Deliverable per Project / Internship / PG Thesis (Word + PDF, sequential sign-off). Assigned faculty score Applied/Workshop rubrics and Classroom composites. Subject contributions are always normalized — never a raw average. Internship totals come from internal/50 + external/50, each half of 30. PG Thesis evaluation is gated on an approved Paper Publication Report. Integrity uses per-document thresholds (Thesis 20, Project 30), supervisor-certified exclusions, a real case workflow, and a separate code-similarity queue for Programming Practice.
 
 ## What We Are Building
 
@@ -41,7 +41,7 @@ ALR is a Next.js 16 digital Learning Record platform for Centurion University. I
 | M03 LR Submissions | Done | Per-record Submit LR tabs, draft/submit, books/manuals, workshop hours sum, faculty inbox, Project/Thesis/Internship now open as M05 deliverables | Word/PDF lives on the deliverable |
 | M04 Evaluation/Scoring | Done | Applied 50-pt rubric, Workshop 100-pt rubric, Classroom composites, SubjectScore via recompute only, stub AI queue + Valkey progress, override reason on student view, faculty gradebook | Mentors cannot score |
 | M05 Major Deliverables | Done | One MajorDeliverable per Project/Internship/Thesis, ≤3 candidates, Word+PDF required, sequential Signoff + lock, industry token (Mongo+Valkey 14d), internship 40+40=24, PG Thesis publication gate, supervisor/HoD/Dean queues | Plagiarism detector is M06 |
-| M06 Plagiarism/Integrity | Not started | - | Requires M05 files/deliverables |
+| M06 Plagiarism/Integrity | Done | Per-type thresholds (Thesis 20), stub prose/code providers, exclusions with certificate, OPEN→…→RATIFIED/DISMISSED cases, UNDER_COMMITTEE_REVIEW, programming zip on `plagiarism.code`, hourly cap + health % | Do not start M07 |
 | M07 Year/Program/Credits | Not started | - | Requires scores/sign-offs |
 | M08 Analytics/Exports | Not started | - | Requires M07 data |
 | M09 Polish/Hardening | Not started | - | Final cleanup |
@@ -104,14 +104,15 @@ npm run seed:m02
 npm run seed:m03
 npm run seed:m04
 npm run seed:m05
+npm run seed:m06
 ```
 
-M05 commands run:
+M06 commands run:
 
 - `npm run lint` — pass
 - `npm run build` — pass
-- `npm test` — pass (normalize + scoring + internship)
-- `npm run seed:m05` — pass (shared project, internship 24/30, publication gate)
+- `npm test` — pass (normalize + scoring + internship + plagiarism)
+- `npm run seed:m06` — pass (Thesis 20, project 35% exclusion demo, internship case, code job, 78/100 usage)
 
 Restart `npm run dev` and `npm run worker` after pulling M01 so `AUTH_SECRET` and the notify worker load.
 
@@ -135,11 +136,11 @@ Local test steps (what to run, where OTP prints, seed emails, domain rules): [`d
 | Internship industry token path | Implemented | M05 |
 | Internship internal/external 50/50 total | Implemented | M05 |
 | PG Thesis publication gate | Implemented | M05 |
-| Per-document plagiarism thresholds | Planned | M06 |
-| Thesis 20% threshold | Planned | M06 |
-| Supervisor-certified exclusions | Planned | M06 |
-| Plagiarism case management | Planned | M06 |
-| Code-similarity separate from prose | Planned | M06 |
+| Per-document plagiarism thresholds | Implemented | M06 |
+| Thesis 20% threshold | Implemented | M06 |
+| Supervisor-certified exclusions | Implemented | M06 |
+| Plagiarism case management | Implemented | M06 |
+| Code-similarity separate from prose | Implemented | M06 |
 | Year-wise committee workflow | Planned | M07 |
 | Program-wise committee workflow | Planned | M07 |
 | 1 credit/year ledger | Planned | M07 |
@@ -151,16 +152,19 @@ Local test steps (what to run, where OTP prints, seed emails, domain rules): [`d
 | One-time declaration only | Implemented | M01, M09 |
 | Email + OTP sign-in | Implemented | M01 |
 | Sign in with Google (provisioned emails only) | Implemented | M01 |
-| Plagiarism headroom health | Planned | M06, M09 |
+| Plagiarism headroom health | Implemented | M06, M09 |
 
 ## Last Completed Milestone
 
-M04 Evaluation/Scoring
+M06 Plagiarism/Integrity
 
 ## Known Gaps / Decisions
 
 - The compiled report says there are twelve subject configurations but lists seven singles plus four named combinations. We treat `THEORY_WORKSHOP` as the fifth combination until the Dean office confirms otherwise. Keep it data-driven.
-- Real plagiarism provider is not selected. Use provider interface plus local stub first.
+- Real plagiarism provider is not selected. Use the `SimilarityProvider` interface plus hashed-shingle stubs (`STUB_PROSE` / `STUB_CODE`). Do not add a Turnitin client.
+- Programming Practice is one zip on Applied courses and always uses job `plagiarism.code` on the code-similarity queue.
+- Opening a case sets the deliverable to `UNDER_COMMITTEE_REVIEW` and restores `statusBeforeCase` on ratify or dismiss.
+- Hourly cap is Valkey `rl:plagiarism:{campus}:{hour}` vs `settings.plagiarismHourlyCap` (seed 100). Health shows usage %; seed writes 78.
 - Real LMS integration for Classroom components is not selected. Use manual entry first.
 - Real academic ERP integration is not selected. Use exam-cell export first.
 - File storage starts local under `FILE_DIR`; S3/MinIO can be added later only when needed.

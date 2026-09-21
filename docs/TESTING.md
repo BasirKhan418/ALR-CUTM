@@ -407,3 +407,25 @@ Keep `npm run worker` running so sign-off notify stubs can log.
 8. Sign in as the student. `ALR-INTERNSHIP` shows Internal 40 / 50, External 40 / 50, report total **24 / 30**. There is no manual final field.
 9. Open `ALR-THESIS`. **Submit for evaluation** stays blocked until the Paper Publication Report is fully approved. Publication is waiting on Supervisor (Co-supervisor is `faculty.bbsr@cutm.ac.in`).
 10. Assigned faculty open `ALR-PROJECT` → **Deliverables** for the CO sheet and 30-point report score. Mentors still cannot score.
+
+---
+
+## 14. M06 — Plagiarism, exclusions, cases, code similarity
+
+```bash
+npm run seed:m02
+npm run seed:m05
+npm run seed:m06
+```
+
+Keep `npm run worker` running so `plagiarism.prose`, `plagiarism.code`, and `plagiarism.case.timeout` can finish.
+
+1. Sign in as `admin.bbsr@cutm.ac.in`. **Settings → Integrity thresholds**: Thesis is **20**, Project is **30**, hourly cap is **100**. **Health** shows hourly usage **78%** (78 / 100).
+2. Sign in as `student.bbsr@cutm.ac.in`. Open `ALR-THESIS`. Integrity report is **12%** against a **20%** thesis threshold and **Clear**.
+3. Open `ALR-PROJECT`. Report is **35%** / **30%**, **Flagged**, with two matches. The Word/PDF evidence stays after an exclusion.
+4. Sign in as `supervisor.bbsr@cutm.ac.in`. Open the Campus solar tracker. Certify exclusion on match **a** with a reason and a PDF. Remaining score drops below 30 and the report becomes **Clear**. Evidence rows remain.
+5. Sign in as `student.bbsr@cutm.ac.in`. **Cases** lists Rural grid internship. Timer is visible and not expired. Submit a response. Status becomes **Student responded**.
+6. Sign in as `faculty.bbsr@cutm.ac.in`. **Cases** shows that internship (assigned committee). The supervisor is not in the Dean committee picker. Record a recommendation.
+7. Sign in as `dean.bbsr@cutm.ac.in`. **Cases** → assign committee (supervisor is hidden). After a recommendation, **Ratify** or **Dismiss**. The internship leaves **Under committee review**.
+8. Sign in as the student. Open `ALR-THEORY-PRACTICE-PROJECT` → Applied. Programming Practice zip is present. The report tool is `STUB_CODE` and the job name is `plagiarism.code` — never `plagiarism.prose`.
+9. Audit / health job list: programming enqueue payload job is `plagiarism.code`. Over-cap jobs delay; they do not skip the limiter.

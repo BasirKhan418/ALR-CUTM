@@ -8,6 +8,7 @@ import { StoredFile, type FileKind } from "@/lib/db/models/file"
 export const DOCX_MIME =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 export const PDF_MIME = "application/pdf"
+export const ZIP_MIME = "application/zip"
 const MAX_BYTES = 20 * 1024 * 1024
 
 function fileRoot() {
@@ -26,6 +27,13 @@ export function detectKind(file: File): FileKind | null {
   const name = file.name.toLowerCase()
   if (name.endsWith(".docx") || file.type === DOCX_MIME) return "DOCX"
   if (name.endsWith(".pdf") || file.type === PDF_MIME) return "PDF"
+  if (
+    name.endsWith(".zip") ||
+    file.type === ZIP_MIME ||
+    file.type === "application/x-zip-compressed"
+  ) {
+    return "ZIP"
+  }
   return null
 }
 
@@ -48,6 +56,9 @@ export async function saveUploadedFile(input: {
   if ((input.kind === "PDF" || input.kind === "PROOF") && detected !== "PDF") {
     return { ok: false as const, message: "That file must be a PDF." }
   }
+  if (input.kind === "ZIP" && detected !== "ZIP") {
+    return { ok: false as const, message: "Programming upload must be a .zip." }
+  }
 
   const id = new Types.ObjectId()
   const dir = path.join(fileRoot(), input.campusId)
@@ -61,7 +72,9 @@ export async function saveUploadedFile(input: {
     campusId: input.campusId,
     uploadedBy: input.uploadedBy,
     originalName: input.file.name,
-    mimeType: input.file.type || (detected === "DOCX" ? DOCX_MIME : PDF_MIME),
+    mimeType:
+      input.file.type ||
+      (detected === "DOCX" ? DOCX_MIME : detected === "ZIP" ? ZIP_MIME : PDF_MIME),
     byteSize: bytes.length,
     storagePath,
     kind: input.kind,

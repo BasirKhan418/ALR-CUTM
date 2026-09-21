@@ -16,6 +16,7 @@ export const DELIVERABLE_STATUSES = [
   "REJECTED",
   "APPROVED",
   "SUBMITTED_FOR_EVALUATION",
+  "UNDER_COMMITTEE_REVIEW",
   "WITHDRAWN",
 ] as const
 
@@ -70,6 +71,7 @@ export function deliverableStatusLabel(status: DeliverableStatus) {
   if (status === "REJECTED") return "Rejected"
   if (status === "APPROVED") return "Approved"
   if (status === "SUBMITTED_FOR_EVALUATION") return "Submitted for evaluation"
+  if (status === "UNDER_COMMITTEE_REVIEW") return "Under committee review"
   return "Withdrawn"
 }
 

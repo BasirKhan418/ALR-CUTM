@@ -1,5 +1,6 @@
 import mongoose from "mongoose"
 import { connection } from "next/server"
+import { PlagiarismReport } from "@/lib/db/models/plagiarism-report"
 import { connectMongo } from "@/lib/db/mongo"
 import { withTimeout } from "@/lib/health"
 import { allQueues, QUEUE_NAMES } from "@/lib/queue/queues"
@@ -15,6 +16,13 @@ export async function GET() {
   const queues: Record<string, number> = Object.fromEntries(
     Object.values(QUEUE_NAMES).map((name) => [name, -1])
   )
+  const queueFailed: Record<string, number> = Object.fromEntries(
+    Object.values(QUEUE_NAMES).map((name) => [name, -1])
+  )
+  let failedReports = 0
+  let plagiarismUsed = 0
+  let plagiarismCap = 0
+  let plagiarismPercent = 0
 
   try {
     await withTimeout(connectMongo(), PING_MS, "mongo")
@@ -23,6 +31,7 @@ export async function GET() {
       PING_MS,
       "mongo-ping"
     )
+    failedReports = await PlagiarismReport.countDocuments({ status: "FAILED" })
     mongo = "ok"
   } catch {
     mongo = "error"
@@ -41,13 +50,30 @@ export async function GET() {
     try {
       const names = Object.values(QUEUE_NAMES)
       const counts = await withTimeout(
-        Promise.all(allQueues().map((queue) => queue.getWaitingCount())),
+        Promise.all(
+          allQueues().map(async (queue) => ({
+            waiting: await queue.getWaitingCount(),
+            failed: await queue.getFailedCount(),
+          }))
+        ),
         PING_MS,
         "queues"
       )
       names.forEach((name, index) => {
-        queues[name] = counts[index] ?? 0
+        queues[name] = counts[index]?.waiting ?? 0
+        queueFailed[name] = counts[index]?.failed ?? 0
       })
+      const keys = await getValkey().keys("rl:plagiarism:*")
+      if (keys.length > 0) {
+        const usedValues = await Promise.all(keys.map((key) => getValkey().get(key)))
+        plagiarismUsed = usedValues.reduce((sum, value) => sum + Number(value ?? 0), 0)
+      }
+      const { readPlagiarismHourlyCap } = await import("@/lib/catalog/settings")
+      plagiarismCap = await readPlagiarismHourlyCap()
+      plagiarismPercent =
+        plagiarismCap > 0
+          ? Math.round((Math.min(plagiarismUsed, plagiarismCap) / plagiarismCap) * 100)
+          : 0
     } catch {
       // leave queue counts at -1
     }
@@ -55,7 +81,19 @@ export async function GET() {
 
   const ok = mongo === "ok" && valkey === "ok"
   return Response.json(
-    { ok, mongo, valkey, queues },
+    {
+      ok,
+      mongo,
+      valkey,
+      queues,
+      queueFailed,
+      plagiarism: {
+        used: plagiarismUsed,
+        cap: plagiarismCap,
+        percent: plagiarismPercent,
+        failedReports,
+      },
+    },
     { status: ok ? 200 : 503 }
   )
 }

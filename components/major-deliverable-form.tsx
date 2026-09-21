@@ -13,6 +13,7 @@ import {
   upsertDeliverableDraft,
   type DeliverableFormState,
 } from "@/lib/actions/deliverable"
+import { PlagiarismReportPanel } from "@/components/plagiarism-report-panel"
 import { SignoffStepper } from "@/components/signoff-stepper"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
@@ -86,7 +87,22 @@ export function MajorDeliverableForm({
               Returned: {current.lastReturnReason}
             </p>
           ) : null}
+          {current.status === "UNDER_COMMITTEE_REVIEW" ? (
+            <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-sm">
+              This record is under committee review. Sign-off is paused.
+            </p>
+          ) : null}
         </section>
+      ) : null}
+      {current?.report ? (
+        <PlagiarismReportPanel
+          report={current.report}
+          caseHref={
+            current.report.caseId
+              ? `/student/cases/${current.report.caseId}`
+              : undefined
+          }
+        />
       ) : null}
 
       <form

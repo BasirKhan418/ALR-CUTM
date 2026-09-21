@@ -15,7 +15,9 @@ import { IndustryToken } from "@/lib/db/models/industry-token"
 import { LrEntry } from "@/lib/db/models/lr-entry"
 import { MajorDeliverable } from "@/lib/db/models/major-deliverable"
 import { PaperPublication } from "@/lib/db/models/paper-publication"
+import { PlagiarismCase } from "@/lib/db/models/plagiarism-case"
 import { PlagiarismReport } from "@/lib/db/models/plagiarism-report"
+import { ProgrammingUpload } from "@/lib/db/models/programming-upload"
 import { Signoff } from "@/lib/db/models/signoff"
 import { SubjectScore } from "@/lib/db/models/subject-score"
 import { Programme } from "@/lib/db/models/programme"
@@ -243,6 +245,18 @@ export async function updateCourseCombination(
   if (!nextTypes.includes("CLASSROOM_LEARNING")) {
     await ClassroomComponents.deleteMany({ courseId: course._id })
   }
+  if (!nextTypes.includes("APPLIED_ACTION_LEARNING")) {
+    const uploads = await ProgrammingUpload.find({ courseId: course._id }).select("_id")
+    await PlagiarismReport.deleteMany({
+      targetType: "PROGRAMMING_UPLOAD",
+      targetId: { $in: uploads.map((row) => row._id) },
+    })
+    await PlagiarismCase.deleteMany({
+      targetType: "PROGRAMMING_UPLOAD",
+      targetId: { $in: uploads.map((row) => row._id) },
+    })
+    await ProgrammingUpload.deleteMany({ courseId: course._id })
+  }
   const droppedDeliverableTypes = [
     ...(!nextTypes.includes("PROJECT_REPORT")
       ? (["MINOR_PROJECT", "MAJOR_PROJECT"] as const)
@@ -271,6 +285,7 @@ export async function updateCourseCombination(
       await PaperPublication.deleteMany({ deliverableId: { $in: leftoverIds } })
       await IndustryToken.deleteMany({ deliverableId: { $in: leftoverIds } })
       await PlagiarismReport.deleteMany({ deliverableId: { $in: leftoverIds } })
+      await PlagiarismCase.deleteMany({ deliverableId: { $in: leftoverIds } })
       await MajorDeliverable.deleteMany({ _id: { $in: leftoverIds } })
     }
   }

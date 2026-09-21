@@ -54,6 +54,9 @@ async function Loader({ params }: { params: Promise<{ id: string }> }) {
     deliverable,
     pubPending?.role
   )
+  const canExclude =
+    deliverable.supervisorId === session.userId ||
+    deliverable.coSupervisorId === session.userId
   return (
     <PageEnter className="flex w-full flex-col gap-6">
       <PageBreadcrumb
@@ -66,6 +69,8 @@ async function Loader({ params }: { params: Promise<{ id: string }> }) {
         deliverable={deliverable}
         canDecide={canDecide}
         canDecidePublication={canDecidePublication}
+        canExclude={canExclude}
+        caseBase="/faculty/cases"
       />
     </PageEnter>
   )

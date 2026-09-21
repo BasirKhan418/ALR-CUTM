@@ -12,7 +12,8 @@ import { FacultyAssignment } from "@/lib/db/models/faculty-assignment"
 import { IndustryToken } from "@/lib/db/models/industry-token"
 import { MajorDeliverable } from "@/lib/db/models/major-deliverable"
 import { PaperPublication } from "@/lib/db/models/paper-publication"
-import { PlagiarismReport } from "@/lib/db/models/plagiarism-report"
+import { enqueuePlagiarismScan } from "@/lib/plagiarism/enqueue"
+import { PROSE_JOB } from "@/lib/domain/plagiarism"
 import { Signoff } from "@/lib/db/models/signoff"
 import { User } from "@/lib/db/models/user"
 import { connectMongo } from "@/lib/db/mongo"
@@ -433,19 +434,22 @@ async function submitDeliverableRecord(
   })
   row.status = row.type === "PG_THESIS" && thesisGate ? "SUBMITTED_FOR_EVALUATION" : "SUBMITTED"
   await row.save()
-  await PlagiarismReport.updateOne(
-    { deliverableId: row._id },
-    {
-      $setOnInsert: {
-        campusId: row.campusId,
-        deliverableId: row._id,
-        tool: "STUB",
-        thresholdPercent: row.type === "PG_THESIS" ? 20 : 30,
-        status: "PENDING",
-      },
-    },
-    { upsert: true }
-  )
+  await enqueuePlagiarismScan({
+    campusId: String(row.campusId),
+    targetType: "MAJOR_DELIVERABLE",
+    targetId: String(row._id),
+    documentType:
+      row.type === "PG_THESIS"
+        ? "THESIS"
+        : row.type === "INTERNSHIP"
+          ? "INTERNSHIP"
+          : "PROJECT",
+    job: PROSE_JOB,
+    deliverableId: String(row._id),
+    courseId: String(row.courseId),
+    termId: String(row.termId),
+    actorId,
+  })
   const supervisor = await User.findById(row.supervisorId)
   if (supervisor) {
     await notifySignoff({
@@ -513,6 +517,12 @@ export async function decideSignoff(
     await connectMongo()
     const row = await MajorDeliverable.findById(id)
     if (!row) return { ok: false as const, message: "Deliverable was not found." }
+    if (row.status === "UNDER_COMMITTEE_REVIEW") {
+      return {
+        ok: false as const,
+        message: "Sign-off is paused while a plagiarism case is open.",
+      }
+    }
     if (row.status !== "SUBMITTED" && row.status !== "SUBMITTED_FOR_EVALUATION") {
       return { ok: false as const, message: "This record is not waiting on a sign-off decision." }
     }
@@ -622,6 +632,9 @@ export async function issueIndustryToken(
   if (!row || row.type !== "INTERNSHIP") {
     return { ok: false, message: "Industry tokens are only for internships." }
   }
+  if (integrityPaused(row)) {
+    return { ok: false, message: "Scoring is paused while a plagiarism case is open." }
+  }
   if (mentorBlocked(session, row)) {
     return { ok: false, message: "Mentors cannot issue industry tokens." }
   }
@@ -660,6 +673,9 @@ export async function upsertCoAttainment(
   await connectMongo()
   const row = await MajorDeliverable.findById(id)
   if (!row) return { ok: false, message: "Deliverable was not found." }
+  if (integrityPaused(row)) {
+    return { ok: false, message: "The CO sheet is paused while a plagiarism case is open." }
+  }
   if (mentorBlocked(session, row)) {
     return { ok: false, message: "Mentors cannot edit the CO sheet." }
   }
@@ -698,6 +714,9 @@ export async function scoreInternshipInternal(
   const row = await MajorDeliverable.findById(id)
   if (!row || row.type !== "INTERNSHIP") {
     return { ok: false, message: "Internal scores apply to internships only." }
+  }
+  if (integrityPaused(row)) {
+    return { ok: false, message: "Scoring is paused while a plagiarism case is open." }
   }
   if (mentorBlocked(session, row)) {
     return { ok: false, message: "Mentors cannot score internships." }
@@ -738,6 +757,9 @@ export async function scoreDeliverableRubric(
   if (!row) return { ok: false, message: "Deliverable was not found." }
   if (row.type === "INTERNSHIP") {
     return { ok: false, message: "Internship uses the internal/external auto-total, not a manual final." }
+  }
+  if (integrityPaused(row)) {
+    return { ok: false, message: "Scoring is paused while a plagiarism case is open." }
   }
   if (mentorBlocked(session, row)) {
     return { ok: false, message: "Mentors cannot score major deliverables." }
@@ -868,6 +890,12 @@ export async function decidePublication(
     if (!publication) return { ok: false as const, message: "Publication was not found." }
     const row = await MajorDeliverable.findById(publication.deliverableId)
     if (!row) return { ok: false as const, message: "Deliverable was not found." }
+    if (row.status === "UNDER_COMMITTEE_REVIEW") {
+      return {
+        ok: false as const,
+        message: "Sign-off is paused while a plagiarism case is open.",
+      }
+    }
     if (publication.status !== "SUBMITTED") {
       return { ok: false as const, message: "This publication report is not waiting on a decision." }
     }
@@ -958,6 +986,10 @@ async function notifyNextActor(
       courseId: String(row.courseId),
     })
   }
+}
+
+function integrityPaused(row: { status: string }) {
+  return row.status === "UNDER_COMMITTEE_REVIEW"
 }
 
 function mentorBlocked(

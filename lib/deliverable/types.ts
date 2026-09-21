@@ -1,4 +1,5 @@
 import type { DeliverableStatus, DeliverableType } from "@/lib/domain/deliverable"
+import type { PlagiarismReportView } from "@/lib/plagiarism/types"
 import type { PublicationStatus } from "@/lib/db/models/paper-publication"
 import type { Role } from "@/lib/domain/roles"
 import type { SignoffDecision } from "@/lib/domain/signoff"
@@ -68,6 +69,7 @@ export type DeliverableView = {
   publication: PublicationView | null
   industryTokenUrl: string | null
   lastReturnReason: string
+  report: PlagiarismReportView | null
 }
 
 export type DeliverableQueueItem = {

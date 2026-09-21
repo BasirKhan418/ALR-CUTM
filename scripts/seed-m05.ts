@@ -7,7 +7,6 @@ import { StoredFile } from "@/lib/db/models/file"
 import { IndustryToken } from "@/lib/db/models/industry-token"
 import { MajorDeliverable } from "@/lib/db/models/major-deliverable"
 import { PaperPublication } from "@/lib/db/models/paper-publication"
-import { PlagiarismReport } from "@/lib/db/models/plagiarism-report"
 import { Signoff } from "@/lib/db/models/signoff"
 import { Term } from "@/lib/db/models/term"
 import { User } from "@/lib/db/models/user"
@@ -195,20 +194,6 @@ async function seed() {
     { role: "SUPERVISOR", decision: "PENDING" },
     { role: "HOD", decision: "PENDING" },
   ])
-  await PlagiarismReport.updateOne(
-    { deliverableId: sharedProject._id },
-    {
-      $setOnInsert: {
-        campusId: project.campusId,
-        deliverableId: sharedProject._id,
-        tool: "STUB",
-        thresholdPercent: 30,
-        status: "PENDING",
-      },
-    },
-    { upsert: true }
-  )
-
   const internTotal = internshipReportTotal(40, 40)
   const internRow = await MajorDeliverable.findOneAndUpdate(
     { courseId: internship._id, type: "INTERNSHIP", title: "Rural grid internship" },

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { LrEntryForm } from "@/components/lr-entry-form"
 import { MajorDeliverableForm } from "@/components/major-deliverable-form"
+import { ProgrammingUploadCard } from "@/components/programming-upload-card"
 import { Button } from "@/components/ui/button"
 import { isMajorLrRecordType } from "@/lib/domain/deliverable"
 import {
@@ -19,6 +20,7 @@ import type {
   StaffOption,
 } from "@/lib/deliverable/types"
 import type { LrEntryView } from "@/lib/lr/types"
+import type { ProgrammingUploadView } from "@/lib/plagiarism/types"
 
 export function LrRecordPanel({
   courseId,
@@ -28,6 +30,7 @@ export function LrRecordPanel({
   deliverable = null,
   staff = [],
   classmates = [],
+  programming = null,
 }: {
   courseId: string
   recordType: RecordType
@@ -36,6 +39,7 @@ export function LrRecordPanel({
   deliverable?: DeliverableView | null
   staff?: StaffOption[]
   classmates?: EnrolledStudentOption[]
+  programming?: ProgrammingUploadView | null
 }) {
   if (!required) {
     return (
@@ -64,6 +68,9 @@ export function LrRecordPanel({
       courseId={courseId}
       recordType={recordType}
       entries={entries}
+      programming={
+        recordType === "APPLIED_ACTION_LEARNING" ? programming : null
+      }
     />
   )
 }
@@ -72,10 +79,12 @@ function LiveRecordList({
   courseId,
   recordType,
   entries,
+  programming,
 }: {
   courseId: string
   recordType: LiveLrRecordType
   entries: LrEntryView[]
+  programming: ProgrammingUploadView | null
 }) {
   const [extraIds, setExtraIds] = useState<string[]>(() =>
     entries.length === 0 ? ["blank-initial"] : []
@@ -144,6 +153,9 @@ function LiveRecordList({
           {addLabel}
         </Button>
       </div>
+      {recordType === "APPLIED_ACTION_LEARNING" ? (
+        <ProgrammingUploadCard courseId={courseId} upload={programming} />
+      ) : null}
     </div>
   )
 }

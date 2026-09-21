@@ -23,6 +23,8 @@ import {
   loadWorkshopCertificateData,
 } from "@/lib/lr/queries"
 import type { WorkshopCertificateData } from "@/lib/lr/types"
+import { PROSE_JOB } from "@/lib/domain/plagiarism"
+import { enqueuePlagiarismScan } from "@/lib/plagiarism/enqueue"
 import { notifyQueue } from "@/lib/queue/queues"
 
 export type LrFormState = {
@@ -280,6 +282,20 @@ async function saveEntry(
       }
     } catch (notifyError) {
       console.error("[lr] notify.email enqueue failed", notifyError)
+    }
+    try {
+      await enqueuePlagiarismScan({
+        campusId: String(entry.campusId),
+        targetType: "LR_ENTRY",
+        targetId: String(entry._id),
+        documentType: recordType,
+        job: PROSE_JOB,
+        courseId,
+        termId: String(entry.termId),
+        actorId: session.userId,
+      })
+    } catch (scanError) {
+      console.error("[lr] plagiarism.prose enqueue failed", scanError)
     }
   }
 

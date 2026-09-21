@@ -58,6 +58,7 @@ async function Loader({ params }: { params: Promise<{ id: string }> }) {
         deliverable={deliverable}
         canDecide={canDecide}
         canDecidePublication={canDecidePublication}
+        caseBase="/dean/cases"
       />
     </PageEnter>
   )

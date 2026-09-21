@@ -9,6 +9,7 @@ export type WorkspaceIcon =
   | "settings"
   | "home"
   | "mentor"
+  | "shield"
 
 export type WorkspaceLink = {
   href: string
@@ -45,7 +46,14 @@ export const WORKSPACE_NAV: Record<ShellRole, WorkspaceLink[]> = {
       href: "/student",
       label: "My courses",
       icon: "courses",
-      isActive: prefix("/student"),
+      isActive: (pathname) =>
+        pathname === "/student" || pathname.startsWith("/student/courses"),
+    },
+    {
+      href: "/student/cases",
+      label: "Cases",
+      icon: "shield",
+      isActive: prefix("/student/cases"),
     },
   ],
   FACULTY: [
@@ -72,6 +80,12 @@ export const WORKSPACE_NAV: Record<ShellRole, WorkspaceLink[]> = {
       label: "Sign-off",
       icon: "inbox",
       isActive: prefix("/supervisor"),
+    },
+    {
+      href: "/faculty/cases",
+      label: "Cases",
+      icon: "shield",
+      isActive: prefix("/faculty/cases"),
     },
   ],
   MENTOR: [
@@ -103,7 +117,14 @@ export const WORKSPACE_NAV: Record<ShellRole, WorkspaceLink[]> = {
       href: "/dean",
       label: "Sign-off queue",
       icon: "inbox",
-      isActive: prefix("/dean"),
+      isActive: (pathname) =>
+        pathname === "/dean" || /^\/dean\/[^/]+$/.test(pathname),
+    },
+    {
+      href: "/dean/cases",
+      label: "Cases",
+      icon: "shield",
+      isActive: prefix("/dean/cases"),
     },
   ],
   ADMIN: [
@@ -130,6 +151,18 @@ export const WORKSPACE_NAV: Record<ShellRole, WorkspaceLink[]> = {
       label: "Settings",
       icon: "settings",
       isActive: prefix("/admin/settings"),
+    },
+    {
+      href: "/admin/cases",
+      label: "Cases",
+      icon: "shield",
+      isActive: prefix("/admin/cases"),
+    },
+    {
+      href: "/admin/health",
+      label: "Health",
+      icon: "home",
+      isActive: exact("/admin/health"),
     },
   ],
 }

@@ -16,6 +16,7 @@ import {
 import type { RecordType } from "@/lib/domain/record-types"
 import type { Role } from "@/lib/domain/roles"
 import type { SignoffTargetType } from "@/lib/domain/signoff"
+import { loadReportForTarget } from "@/lib/plagiarism/queries"
 import type {
   CandidateView,
   DeliverableQueueItem,
@@ -87,7 +88,7 @@ export async function loadDeliverable(
   await connectMongo()
   const row = await MajorDeliverable.findById(id).lean()
   if (!row) return null
-  const [course, supervisor, coSupervisor, word, pdf, steps, publication, token] =
+  const [course, supervisor, coSupervisor, word, pdf, steps, publication, token, report] =
     await Promise.all([
       Course.findById(row.courseId).lean(),
       row.supervisorId ? User.findById(row.supervisorId).lean() : null,
@@ -97,6 +98,7 @@ export async function loadDeliverable(
       loadSignoffViews("MAJOR_DELIVERABLE", String(row._id)),
       loadPublication(String(row._id)),
       IndustryToken.findOne({ deliverableId: row._id }).sort({ createdAt: -1 }).lean(),
+      loadReportForTarget("MAJOR_DELIVERABLE", String(row._id)),
     ])
   const currentStep = steps.find((step) => step.decision === "PENDING") ?? null
   const lastReturn = [...steps]
@@ -161,6 +163,7 @@ export async function loadDeliverable(
     publication,
     industryTokenUrl: token && token.expiresAt > new Date() ? "issued" : null,
     lastReturnReason: lastReturn?.reason ?? "",
+    report,
   }
 }
 
@@ -253,6 +256,7 @@ export async function loadQueueForRole(input: {
   const rows = await MajorDeliverable.find({
     _id: { $in: allDeliverableIds },
     campusId: input.campusId,
+    status: { $ne: "UNDER_COMMITTEE_REVIEW" },
   }).lean()
   const filtered = rows.filter((row) => {
     if (input.role === "SUPERVISOR") return String(row.supervisorId) === input.userId

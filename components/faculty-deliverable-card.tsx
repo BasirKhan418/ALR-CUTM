@@ -34,7 +34,12 @@ export function FacultyDeliverableCard({
             {deliverable.candidates.map((item) => item.name).join(", ")}
           </p>
         </div>
-        <Badge>{deliverableStatusLabel(deliverable.status)}</Badge>
+        <div className="flex flex-wrap gap-2">
+          <Badge>{deliverableStatusLabel(deliverable.status)}</Badge>
+          {deliverable.report ? (
+            <Badge variant="outline">{deliverable.report.status}</Badge>
+          ) : null}
+        </div>
       </div>
       <Link
         href={`/faculty/deliverables/${deliverable.id}`}
@@ -42,6 +47,11 @@ export function FacultyDeliverableCard({
       >
         Open scoring and files
       </Link>
+      {deliverable.status === "UNDER_COMMITTEE_REVIEW" ? (
+        <p className="text-sm text-muted-foreground">
+          CO and scores are paused while an integrity case is open.
+        </p>
+      ) : (
       <form action={action} className="flex flex-col gap-3">
         <input type="hidden" name="deliverableId" value={deliverable.id} />
         <p className="text-sm font-medium">CO attainment sheet</p>
@@ -69,6 +79,7 @@ export function FacultyDeliverableCard({
         ) : null}
         <SubmitButton pendingLabel="Saving…">Save CO sheet</SubmitButton>
       </form>
+      )}
     </article>
   )
 }

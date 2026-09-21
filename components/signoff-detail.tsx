@@ -9,6 +9,7 @@ import {
   scoreInternshipInternal,
   type DeliverableFormState,
 } from "@/lib/actions/deliverable"
+import { PlagiarismReportPanel } from "@/components/plagiarism-report-panel"
 import { SignoffStepper } from "@/components/signoff-stepper"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
@@ -33,10 +34,14 @@ export function SignoffDetail({
   deliverable,
   canDecide,
   canDecidePublication = false,
+  canExclude = false,
+  caseBase,
 }: {
   deliverable: DeliverableView
   canDecide: boolean
   canDecidePublication?: boolean
+  canExclude?: boolean
+  caseBase?: string
 }) {
   const [state, action] = useActionState(decideSignoff, INITIAL)
 
@@ -58,6 +63,11 @@ export function SignoffDetail({
           </div>
           <Badge>{deliverableStatusLabel(deliverable.status)}</Badge>
         </div>
+        {deliverable.status === "UNDER_COMMITTEE_REVIEW" ? (
+          <p className="mt-3 rounded-lg bg-muted px-3 py-2 text-sm">
+            Sign-off is paused while an integrity case is open.
+          </p>
+        ) : null}
         <div className="mt-4 flex flex-wrap gap-2">
           {deliverable.word ? (
             <a
@@ -85,7 +95,7 @@ export function SignoffDetail({
         </div>
       </section>
 
-      {canDecide ? (
+      {canDecide && deliverable.status !== "UNDER_COMMITTEE_REVIEW" ? (
         <form
           action={action}
           className="flex flex-col gap-4 rounded-xl bg-card p-4 ring-1 ring-foreground/10 sm:p-5"
@@ -126,11 +136,23 @@ export function SignoffDetail({
         </form>
       ) : null}
 
-      {deliverable.type === "INTERNSHIP" ? (
+      {deliverable.status === "UNDER_COMMITTEE_REVIEW" ? null : deliverable.type === "INTERNSHIP" ? (
         <InternshipTools deliverable={deliverable} />
       ) : (
         <RubricForm deliverable={deliverable} />
       )}
+
+      {deliverable.report ? (
+        <PlagiarismReportPanel
+          report={deliverable.report}
+          canExclude={canExclude}
+          caseHref={
+            deliverable.report.caseId && caseBase
+              ? `${caseBase}/${deliverable.report.caseId}`
+              : undefined
+          }
+        />
+      ) : null}
 
       {deliverable.publication ? (
         <PublicationDecision

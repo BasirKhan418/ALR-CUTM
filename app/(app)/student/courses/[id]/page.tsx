@@ -30,6 +30,7 @@ import {
   listMyEntries,
   loadWorkshopCertificateData,
 } from "@/lib/lr/queries"
+import { loadProgrammingUpload } from "@/lib/plagiarism/queries"
 import { loadSubjectScores } from "@/lib/scoring/queries"
 import { formatMarks } from "@/lib/scoring/format"
 import { cn } from "@/lib/utils"
@@ -77,7 +78,7 @@ async function Loader({
   const requiredTypes = course.recordConfigs.map((config) => config.recordType)
   const selected =
     record && isRecordType(record) ? record : requiredTypes[0]
-  const [entries, scores, deliverable, staff, classmates] = await Promise.all([
+  const [entries, scores, deliverable, staff, classmates, programming] = await Promise.all([
     listMyEntries(session.userId, course.id),
     loadSubjectScores(session.userId, course.id),
     selected && isMajorLrRecordType(selected)
@@ -85,6 +86,9 @@ async function Loader({
       : Promise.resolve(null),
     loadStaffOptions(session.campusId),
     loadEnrolledStudents(course.id),
+    selected === "APPLIED_ACTION_LEARNING"
+      ? loadProgrammingUpload(session.userId, course.id)
+      : Promise.resolve(null),
   ])
   const activeEntries = entries.filter((entry) =>
     requiredTypes.includes(entry.recordType)
@@ -225,6 +229,7 @@ async function Loader({
               deliverable={deliverable}
               staff={staff}
               classmates={classmates}
+              programming={programming}
             />
           ) : (
             <div className="rounded-xl bg-card p-8 text-sm text-muted-foreground ring-1 ring-foreground/10">

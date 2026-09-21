@@ -1,6 +1,6 @@
 import mongoose, { Schema, Types } from "mongoose"
 
-export const FILE_KINDS = ["DOCX", "PDF", "PROOF"] as const
+export const FILE_KINDS = ["DOCX", "PDF", "PROOF", "ZIP"] as const
 export type FileKind = (typeof FILE_KINDS)[number]
 
 export type FileDoc = {

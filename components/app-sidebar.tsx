@@ -12,6 +12,7 @@ import {
   LandmarkIcon,
   PlusIcon,
   SettingsIcon,
+  ShieldIcon,
   UserCheckIcon,
   UserCogIcon,
   UsersIcon,
@@ -52,6 +53,7 @@ const LINK_ICONS: Record<WorkspaceIcon, ComponentType<{ className?: string }>> =
   settings: SettingsIcon,
   home: HomeIcon,
   mentor: UserCheckIcon,
+  shield: ShieldIcon,
 }
 
 export function AppSidebar({

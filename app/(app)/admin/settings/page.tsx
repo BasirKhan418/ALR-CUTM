@@ -1,11 +1,16 @@
 import { ClassroomWeightsForm } from "@/components/classroom-weights-form"
+import { PlagiarismSettingsForm } from "@/components/plagiarism-settings-form"
 import { Forbidden } from "@/components/forbidden"
 import { PageEnter } from "@/components/page-enter"
 import { PageHeader } from "@/components/page-header"
 import { TermForm } from "@/components/term-form"
 import { WorkspaceSkeleton } from "@/components/app-shell-skeleton"
 import { hasRole, requireSession } from "@/lib/auth/guards"
-import { readClassroomComposites } from "@/lib/catalog/settings"
+import {
+  readClassroomComposites,
+  readPlagiarismHourlyCap,
+  readPlagiarismThresholds,
+} from "@/lib/catalog/settings"
 import { Term } from "@/lib/db/models/term"
 import { connectMongo } from "@/lib/db/mongo"
 import { firstShellHref } from "@/lib/domain/roles"
@@ -25,9 +30,11 @@ async function Loader() {
     return <Forbidden homeHref={firstShellHref(session.roles)} />
   }
   await connectMongo()
-  const [defaults, terms] = await Promise.all([
+  const [defaults, terms, thresholds, hourlyCap] = await Promise.all([
     readClassroomComposites(),
     Term.find().sort({ startsAt: -1 }).lean(),
+    readPlagiarismThresholds(),
+    readPlagiarismHourlyCap(),
   ])
 
   return (
@@ -62,6 +69,17 @@ async function Loader() {
           </p>
         </div>
         <ClassroomWeightsForm defaults={defaults} />
+      </section>
+      <section className="flex flex-col gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10 sm:p-5 xl:col-span-2">
+        <div>
+          <h2 className="font-heading text-lg font-semibold">
+            Integrity thresholds
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Thesis defaults to 20. Programming uses the code-similarity engine.
+          </p>
+        </div>
+        <PlagiarismSettingsForm thresholds={thresholds} hourlyCap={hourlyCap} />
       </section>
       </div>
     </PageEnter>
