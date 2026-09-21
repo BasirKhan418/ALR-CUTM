@@ -119,7 +119,8 @@ export function CreateUserForm({
           </FieldError>
         ) : null}
         <FieldDescription>
-          They sign in with email OTP or Google. No password is created.
+          We email them a sign-in invite. They use this address with a one-time
+          code or Google — no password is created.
         </FieldDescription>
         <DialogFooter>
           <DialogClose

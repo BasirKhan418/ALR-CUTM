@@ -8,13 +8,17 @@ import {
   isAllowedSignInEmail,
   isDesignatedAdminEmail,
 } from "@/lib/domain/email"
+import type { Role } from "@/lib/domain/roles"
 
 export async function findOrCreateAllowedUser(email: string) {
   await connectMongo()
   const existing = await User.findOne({ email })
   if (existing) {
     if (isDesignatedAdminEmail(email) && !existing.roles.includes("ADMIN")) {
-      existing.roles = ["ADMIN", ...existing.roles.filter((role) => role !== "ADMIN")]
+      existing.roles = [
+        "ADMIN",
+        ...existing.roles.filter((role: Role) => role !== "ADMIN"),
+      ]
       await existing.save()
     }
     return existing

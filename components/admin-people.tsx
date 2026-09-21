@@ -146,8 +146,8 @@ export function AdminPeople({
               <DialogHeader>
                 <DialogTitle>Add person</DialogTitle>
                 <DialogDescription>
-                  Name, campus email, and at least one role. They get no
-                  temporary password.
+                  Name, campus email, and at least one role. We email them a
+                  sign-in invite — no temporary password.
                 </DialogDescription>
               </DialogHeader>
               <CreateUserForm

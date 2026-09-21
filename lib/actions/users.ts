@@ -14,6 +14,7 @@ import {
   isDesignatedAdminEmail,
 } from "@/lib/domain/email"
 import { isProvisionableRole, type Role } from "@/lib/domain/roles"
+import { notifyQueue } from "@/lib/queue/queues"
 
 export type CreateUserState = {
   ok: boolean
@@ -83,10 +84,21 @@ export async function createUser(
     action: "user.create",
     payload: { userId: String(user._id), email, roles },
   })
+  try {
+    await notifyQueue().add("user.provisioned", {
+      to: email,
+      name,
+      campusName: campus.name,
+      roles,
+      invitedBy: session.name,
+    })
+  } catch (error) {
+    console.error("[user.create] invite mail", error)
+  }
   revalidatePath("/admin")
   return {
     ok: true,
-    message: `${name} can now sign in with email OTP or Google.`,
+    message: `${name} was added. We sent a sign-in email to ${email}.`,
   }
 }
 
