@@ -2,7 +2,9 @@
 
 import { useState } from "react"
 import { LrEntryForm } from "@/components/lr-entry-form"
+import { MajorDeliverableForm } from "@/components/major-deliverable-form"
 import { Button } from "@/components/ui/button"
+import { isMajorLrRecordType } from "@/lib/domain/deliverable"
 import {
   isLiveLrRecordType,
   isStubLrRecordType,
@@ -10,8 +12,12 @@ import {
   stubRecordMessage,
   type LiveLrRecordType,
 } from "@/lib/domain/lr"
-import { recordTypeLabel } from "@/lib/domain/record-types"
 import type { RecordType } from "@/lib/domain/record-types"
+import type {
+  DeliverableView,
+  EnrolledStudentOption,
+  StaffOption,
+} from "@/lib/deliverable/types"
 import type { LrEntryView } from "@/lib/lr/types"
 
 export function LrRecordPanel({
@@ -19,15 +25,32 @@ export function LrRecordPanel({
   recordType,
   required,
   entries,
+  deliverable = null,
+  staff = [],
+  classmates = [],
 }: {
   courseId: string
   recordType: RecordType
   required: boolean
   entries: LrEntryView[]
+  deliverable?: DeliverableView | null
+  staff?: StaffOption[]
+  classmates?: EnrolledStudentOption[]
 }) {
   if (!required) {
     return (
       <EmptyCard>{missingRecordTypeMessage(recordType)}</EmptyCard>
+    )
+  }
+  if (isMajorLrRecordType(recordType)) {
+    return (
+      <MajorDeliverableForm
+        courseId={courseId}
+        recordType={recordType}
+        deliverable={deliverable}
+        staff={staff}
+        classmates={classmates}
+      />
     )
   }
   if (isStubLrRecordType(recordType)) {
@@ -54,14 +77,32 @@ function LiveRecordList({
   recordType: LiveLrRecordType
   entries: LrEntryView[]
 }) {
-  const [extras, setExtras] = useState(0)
-  const blanks = entries.length === 0 ? extras + 1 : extras
+  const [extraIds, setExtraIds] = useState<string[]>(() =>
+    entries.length === 0 ? ["blank-initial"] : []
+  )
   const addLabel =
     recordType === "APPLIED_ACTION_LEARNING"
       ? "Add another experiment"
       : recordType === "ACTION_LEARNING"
         ? "Add another task"
         : "Add another session"
+  const removeLabel =
+    recordType === "APPLIED_ACTION_LEARNING"
+      ? "Remove this experiment"
+      : recordType === "ACTION_LEARNING"
+        ? "Remove this task"
+        : "Remove this session"
+
+  function addExtra() {
+    setExtraIds((current) => [...current, newBlankId()])
+  }
+
+  function removeExtra(id: string) {
+    setExtraIds((current) => {
+      if (entries.length === 0 && current.length <= 1) return current
+      return current.filter((item) => item !== id)
+    })
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -71,29 +112,50 @@ function LiveRecordList({
           courseId={courseId}
           recordType={recordType}
           entry={entry}
+          canRemove={
+            entry.status === "DRAFT" && entries.length + extraIds.length > 1
+          }
+          removeLabel={removeLabel}
         />
       ))}
-      {Array.from({ length: blanks }, (_, index) => (
+      {extraIds.map((id) => (
         <LrEntryForm
-          key={`blank-${index}`}
+          key={id}
+          formKey={id}
           courseId={courseId}
           recordType={recordType}
+          canRemove={entries.length > 0 || extraIds.length > 1}
+          removeLabel={removeLabel}
+          onRemove={() => removeExtra(id)}
         />
       ))}
-      <Button
-        type="button"
-        variant="outline"
-        className="w-fit"
-        onClick={() => setExtras((count) => count + 1)}
-      >
-        {addLabel}
-      </Button>
-      <p className="text-xs text-muted-foreground">
-        {recordTypeLabel(recordType)} accepts many entries this term. Marks stay
-        with faculty.
-      </p>
+      <div className="flex flex-col gap-2 rounded-xl bg-card px-4 py-3 ring-1 ring-foreground/10 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs text-muted-foreground">
+          One {nounFor(recordType)} stays on the page. Extra cards you add can
+          be removed before submit. Marks stay with faculty.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-fit shrink-0"
+          onClick={addExtra}
+        >
+          {addLabel}
+        </Button>
+      </div>
     </div>
   )
+}
+
+function nounFor(recordType: LiveLrRecordType) {
+  if (recordType === "APPLIED_ACTION_LEARNING") return "experiment"
+  if (recordType === "ACTION_LEARNING") return "task"
+  return "session"
+}
+
+function newBlankId() {
+  return `blank-${crypto.randomUUID()}`
 }
 
 function EmptyCard({ children }: { children: string }) {

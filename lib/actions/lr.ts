@@ -153,6 +153,38 @@ export async function saveLrEntry(
   return saveEntry(formData, intent === "submit" ? "SUBMITTED" : "DRAFT")
 }
 
+export async function deleteLrDraft(
+  _prev: LrFormState,
+  formData: FormData
+): Promise<LrFormState> {
+  const session = await requireSession()
+  if (!hasRole(session, "STUDENT")) {
+    return { ok: false, message: "Only a student can remove a draft record." }
+  }
+  const entryId = String(formData.get("entryId") ?? "").trim()
+  if (!objectId(entryId)) return { ok: false, message: "Entry is required." }
+
+  await connectMongo()
+  const entry = await LrEntry.findById(entryId)
+  if (!entry) return { ok: false, message: "That record was not found." }
+  if (String(entry.studentId) !== session.userId) {
+    return { ok: false, message: "You can only remove your own drafts." }
+  }
+  if (entry.status !== "DRAFT") {
+    return { ok: false, message: "Submitted records cannot be removed here." }
+  }
+
+  const courseId = String(entry.courseId)
+  await entry.deleteOne()
+  await AuditLog.create({
+    actorId: session.userId,
+    action: "lr.delete_draft",
+    payload: { entryId, courseId, recordType: entry.recordType },
+  })
+  invalidateLr(courseId)
+  return { ok: true, message: "Draft removed." }
+}
+
 async function saveEntry(
   formData: FormData,
   nextStatus: "DRAFT" | "SUBMITTED"

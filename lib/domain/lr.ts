@@ -39,7 +39,7 @@ export function missingRecordTypeMessage(recordType: RecordType | string) {
 }
 
 export function stubRecordMessage(recordType: RecordType | string) {
-  return `${recordTypeLabel(recordType)} opens in M05. This subject requires it, but the deliverable form is not open yet.`
+  return `${recordTypeLabel(recordType)} is not open on this subject yet.`
 }
 
 const REQUIRED_BY_TYPE: Record<LiveLrRecordType, readonly string[]> = {

@@ -7,6 +7,7 @@ export const OTP_GMAIL = "khanbasir5556@gmail.com"
 /** Seed dummy users. They skip OTP until invitation-based OTP ships. */
 export const DEV_DIRECT_LOGIN_EMAILS = [
   "student.bbsr@cutm.ac.in",
+  "student2.bbsr@cutm.ac.in",
   "faculty.bbsr@cutm.ac.in",
   "mentor.bbsr@cutm.ac.in",
   "supervisor.bbsr@cutm.ac.in",

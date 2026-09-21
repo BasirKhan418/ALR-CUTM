@@ -10,7 +10,14 @@ import { Course } from "@/lib/db/models/course"
 import { Department } from "@/lib/db/models/department"
 import { Enrollment } from "@/lib/db/models/enrollment"
 import { FacultyAssignment } from "@/lib/db/models/faculty-assignment"
+import { ClassroomComponents } from "@/lib/db/models/classroom-components"
+import { IndustryToken } from "@/lib/db/models/industry-token"
 import { LrEntry } from "@/lib/db/models/lr-entry"
+import { MajorDeliverable } from "@/lib/db/models/major-deliverable"
+import { PaperPublication } from "@/lib/db/models/paper-publication"
+import { PlagiarismReport } from "@/lib/db/models/plagiarism-report"
+import { Signoff } from "@/lib/db/models/signoff"
+import { SubjectScore } from "@/lib/db/models/subject-score"
 import { Programme } from "@/lib/db/models/programme"
 import { Term } from "@/lib/db/models/term"
 import { User } from "@/lib/db/models/user"
@@ -210,7 +217,13 @@ export async function updateCourseCombination(
     return { ok: false, message: "You cannot change this course." }
   }
 
-  const composites = await readClassroomComposites()
+  const existingSplit = course.recordConfigs.find(
+    (config: { recordType: string; compositeWeights?: ClassroomCompositeWeights }) =>
+      config.recordType === "CLASSROOM_LEARNING"
+  )?.compositeWeights
+  const composites = existingSplit
+    ? { ...existingSplit }
+    : await readClassroomComposites()
   course.combinationCode = combinationCode
   course.deliveryMode = deliveryModeFor(combinationCode)
   course.recordConfigs = buildRecordConfigs(combinationCode, composites)
@@ -223,6 +236,44 @@ export async function updateCourseCombination(
     status: "DRAFT",
     recordType: { $nin: nextTypes },
   })
+  await SubjectScore.deleteMany({
+    courseId: course._id,
+    recordType: { $nin: nextTypes },
+  })
+  if (!nextTypes.includes("CLASSROOM_LEARNING")) {
+    await ClassroomComponents.deleteMany({ courseId: course._id })
+  }
+  const droppedDeliverableTypes = [
+    ...(!nextTypes.includes("PROJECT_REPORT")
+      ? (["MINOR_PROJECT", "MAJOR_PROJECT"] as const)
+      : []),
+    ...(!nextTypes.includes("INTERNSHIP_REPORT") ? (["INTERNSHIP"] as const) : []),
+    ...(!nextTypes.includes("THESIS_REPORT") ? (["PG_THESIS"] as const) : []),
+  ]
+  if (droppedDeliverableTypes.length > 0) {
+    const leftovers = await MajorDeliverable.find({
+      courseId: course._id,
+      type: { $in: droppedDeliverableTypes },
+    }).select("_id")
+    const leftoverIds = leftovers.map((row) => row._id)
+    if (leftoverIds.length > 0) {
+      const publications = await PaperPublication.find({
+        deliverableId: { $in: leftoverIds },
+      }).select("_id")
+      await Signoff.deleteMany({
+        targetType: "MAJOR_DELIVERABLE",
+        targetId: { $in: leftoverIds },
+      })
+      await Signoff.deleteMany({
+        targetType: "PAPER_PUBLICATION",
+        targetId: { $in: publications.map((row) => row._id) },
+      })
+      await PaperPublication.deleteMany({ deliverableId: { $in: leftoverIds } })
+      await IndustryToken.deleteMany({ deliverableId: { $in: leftoverIds } })
+      await PlagiarismReport.deleteMany({ deliverableId: { $in: leftoverIds } })
+      await MajorDeliverable.deleteMany({ _id: { $in: leftoverIds } })
+    }
+  }
   await AuditLog.create({
     actorId: session.userId,
     action: "course.combination",

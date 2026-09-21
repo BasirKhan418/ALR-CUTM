@@ -357,10 +357,53 @@ npm run seed:m03
 ```
 
 1. Sign in as `student.bbsr@cutm.ac.in`. Open **My courses**.
-2. Open `ALR-THEORY-PRACTICE-PROJECT`. Tabs must be Classroom, Applied, and a Project **M05** stub. No Workshop tab.
+2. Open `ALR-THEORY-PRACTICE-PROJECT`. Tabs must be Classroom, Applied, and Project Report (major deliverable form). No Workshop tab.
 3. Save a Classroom draft with only a topic. It must save. Submit with empty Books/Manuals must fail. Fill Books/Manuals (`None` is allowed) and submit.
 4. On Applied, add a second experiment card. Submit is blocked until every narrative field is filled.
 5. Open `ALR-WORKSHOP`. Header shows a running hours total. Log two tasks with hours; the header sum updates. Copy says hours, not session count.
 6. Open `ALR-THEORY`. There is no Applied tab. Crafting `?record=APPLIED_ACTION_LEARNING` shows “This subject does not require Applied and Action Learning.”
-7. Sign in as `faculty.bbsr@cutm.ac.in`. Open **Inbox**. Submitted Classroom/Applied/Workshop rows appear read-only. No score inputs.
+7. Sign in as `faculty.bbsr@cutm.ac.in`. Open **Inbox**. Submitted rows have **Score**. Classroom marks stay on the course Classroom tab.
 8. Faculty **Courses** search finds `ALR-THEORY` / test courses. Pagination stays on the list.
+
+---
+
+## 12. M04 — Evaluation and scoring
+
+```bash
+npm run seed:m02
+npm run seed:m03
+npm run seed:m04
+```
+
+Keep `npm run worker` running so **Ask AI to draft scores** can finish.
+
+1. Sign in as `faculty.bbsr@cutm.ac.in`. Open **Inbox**. The seeded Applied and Workshop rows say **Scored**.
+2. Open the first Applied record. Rubric totals 40 / 50. Formula text is visible. Save still recomputes the subject contribution.
+3. Click **Ask AI to draft scores**. Worker logs `ai.score.entry stub`. Suggested 5s appear in the inputs and are not saved until you click **Save scores**. Changing a mark requires an override reason.
+4. Open `ALR-THEORY-PRACTICE-PROJECT` → **Classroom**. Seeded row is 2+2+3+3 = 10. A mark above the course split is rejected.
+5. Open **Gradebook**. Applied shows raw 45 / 50 and contribution **18 / 20**. Classroom shows **10 / 10**. Raw average is never the large number.
+6. Open `ALR-WORKSHOP` gradebook. Workshop contribution is **24 / 30**.
+7. Sign in as `student.bbsr@cutm.ac.in`. Course page **Your scores** matches faculty: 18 / 20, 10 / 10, and on the workshop course 24 / 30. Applied shows `Faculty override: Work was stronger than the midpoint draft on every criterion.` No stub AI notes.
+8. Sign in as `mentor.bbsr@cutm.ac.in`. There is no Inbox scoring UI. Posting `scoreAppliedEntry` as mentor fails with “Mentors cannot score” / not assigned faculty.
+
+---
+
+## 13. M05 — Major deliverables, sign-off, internship token
+
+```bash
+npm run seed:m02
+npm run seed:m05
+```
+
+Keep `npm run worker` running so sign-off notify stubs can log.
+
+1. Sign in as `student.bbsr@cutm.ac.in`. Open `ALR-PROJECT`. Both cover names are **Bhubaneswar Student** and **Bhubaneswar Student Two**. Word + PDF are on the record. The stepper shows a HoD return reason, then a new Supervisor-waiting chain. History is not deleted.
+2. Sign in as `student2.bbsr@cutm.ac.in` (dummy login, no OTP). The same one Major Project record is on their Project tab — not a second copy.
+3. On a draft, submit with only the Word file. Server returns “Word and PDF are both required”. After both files, **Submit to supervisor** reaches the Supervisor queue.
+4. Leave Co-supervisor empty. The chain is Student → Supervisor → HoD. Set a co-supervisor and the extra step appears.
+5. Sign in as `supervisor.bbsr@cutm.ac.in`. **Sign-off queue** shows the shared project waiting on Supervisor, and `Publication: Low-cost soil moisture sensing` for the thesis. Approve / Return / Reject require a reason on return.
+6. Sign in as `hod.bbsr@cutm.ac.in` only after Supervisor has approved. HoD must not see the record while Supervisor is still pending.
+7. Open `/industry/m05-industry-seed-token` logged out. CUTM mark, internship title, candidate names, four fields + external /50. Saving again replaces the industry score.
+8. Sign in as the student. `ALR-INTERNSHIP` shows Internal 40 / 50, External 40 / 50, report total **24 / 30**. There is no manual final field.
+9. Open `ALR-THESIS`. **Submit for evaluation** stays blocked until the Paper Publication Report is fully approved. Publication is waiting on Supervisor (Co-supervisor is `faculty.bbsr@cutm.ac.in`).
+10. Assigned faculty open `ALR-PROJECT` → **Deliverables** for the CO sheet and 30-point report score. Mentors still cannot score.

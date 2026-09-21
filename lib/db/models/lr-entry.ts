@@ -28,6 +28,10 @@ export type LrEntryDoc = {
   criticalThinking?: string
   hoursContributed?: number
   booksManuals?: string
+  facultyScores?: Record<string, number>
+  facultyRemarks?: string
+  scoredBy?: Types.ObjectId
+  scoredAt?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -56,6 +60,10 @@ const lrEntrySchema = new Schema<LrEntryDoc>(
     criticalThinking: { type: String, trim: true },
     hoursContributed: { type: Number },
     booksManuals: { type: String, trim: true },
+    facultyScores: { type: Schema.Types.Mixed },
+    facultyRemarks: { type: String, trim: true },
+    scoredBy: { type: Schema.Types.ObjectId, ref: "User" },
+    scoredAt: { type: Date },
   },
   { collection: "lr_entries", timestamps: true }
 )

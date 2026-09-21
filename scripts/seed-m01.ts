@@ -23,6 +23,13 @@ const SEED_USERS: SeedUser[] = [
     registrationNo: "BBSR-STU-001",
   },
   {
+    email: "student2.bbsr@cutm.ac.in",
+    name: "Bhubaneswar Student Two",
+    campusSlug: "bhubaneswar",
+    roles: ["STUDENT"],
+    registrationNo: "BBSR-STU-002",
+  },
+  {
     email: "faculty.bbsr@cutm.ac.in",
     name: "Bhubaneswar Faculty",
     campusSlug: "bhubaneswar",

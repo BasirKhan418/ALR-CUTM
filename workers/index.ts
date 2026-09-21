@@ -1,6 +1,7 @@
 import { Worker } from "bullmq"
 import { QUEUE_NAMES } from "@/lib/queue/queues"
 import { getValkeyQueue } from "@/lib/valkey"
+import { processAiScore } from "@/workers/processors/ai-score"
 import { processNotify } from "@/workers/processors/notify"
 import { processPing } from "@/workers/processors/ping"
 
@@ -22,6 +23,16 @@ const notifyWorker = new Worker(
   { connection }
 )
 
+const scoringWorker = new Worker(
+  QUEUE_NAMES.scoring,
+  async (job) => {
+    if (job.name === "ai.score.entry") {
+      return processAiScore(job)
+    }
+  },
+  { connection }
+)
+
 function listen(worker: Worker, queue: string) {
   worker.on("ready", () => {
     console.log(`[worker] listening on ${queue}`)
@@ -36,9 +47,14 @@ function listen(worker: Worker, queue: string) {
 
 listen(maintenanceWorker, QUEUE_NAMES.maintenance)
 listen(notifyWorker, QUEUE_NAMES.notify)
+listen(scoringWorker, QUEUE_NAMES.scoring)
 
 async function shutdown() {
-  await Promise.all([maintenanceWorker.close(), notifyWorker.close()])
+  await Promise.all([
+    maintenanceWorker.close(),
+    notifyWorker.close(),
+    scoringWorker.close(),
+  ])
   connection.disconnect()
   process.exit(0)
 }

@@ -28,12 +28,28 @@ export type LrEntryView = {
   createdAt: string
 }
 
+export type InboxCriterionMark = {
+  key: string
+  label: string
+  value: number
+  max: number
+}
+
 export type FacultyInboxItem = LrEntryView & {
   studentName: string
   studentEmail: string
   courseCode: string
   courseTitle: string
   termName: string
+  scored: boolean
+  scoredAt: string | null
+  facultyScores: Record<string, number>
+  facultyRemarks: string
+  entryTotal: number | null
+  entryMax: number | null
+  criterionMarks: InboxCriterionMark[]
+  subjectNormalized: number | null
+  subjectFramework: number | null
 }
 
 export type WorkshopCertificateData = {

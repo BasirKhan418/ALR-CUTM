@@ -4,9 +4,9 @@ Update this file at the end of every milestone implementation. It is the handoff
 
 ## Current State
 
-Status: `M03 shipped`
+Status: `M05 shipped`
 
-M00–M03 are in the tree. Sign-in is email + OTP and optional Google. Sessions are opaque `alr_session` cookies in Valkey (7 days). Courses use the 12-way combination map. Students can file Classroom, Applied, and Workshop entries; Project / Thesis / Internship stay stubbed until M05. Faculty can read submissions but cannot score yet.
+M00–M05 are in the tree. Sign-in is email + OTP and optional Google. Sessions are opaque `alr_session` cookies in Valkey (7 days). Courses use the 12-way combination map. Students file Classroom, Applied, and Workshop entries, plus one shared Major Deliverable per Project / Internship / PG Thesis (Word + PDF, sequential sign-off). Assigned faculty score Applied/Workshop rubrics and Classroom composites. Subject contributions are always normalized — never a raw average. Internship totals come from internal/50 + external/50, each half of 30. PG Thesis evaluation is gated on an approved Paper Publication Report.
 
 ## What We Are Building
 
@@ -38,9 +38,9 @@ ALR is a Next.js 16 digital Learning Record platform for Centurion University. I
 | M00 Foundation | Done | Docker compose, domain constants, Mongo/Valkey/BullMQ, role shells, CUTM theme + logo | Health and worker ping |
 | M01 Identity/Auth | Done | Email OTP + Google, Valkey sessions (7d), declaration, admin provision, multi-role cookie/`?role=` switcher | Google is find-only; OTP auto-creates allowed CUTM emails per TESTING.md |
 | M02 Catalog/Mapping | Done | 12-way combination setup, derived record configs, MOOC delivery, enroll, Faculty vs Mentor, classroom split, student my-courses, admin terms + campus filter | Students cannot submit yet |
-| M03 LR Submissions | Done | Per-record Submit LR tabs, draft/submit, books/manuals, workshop hours sum, faculty read-only inbox, Project/Thesis/Internship stubs | Scoring is M04; Word/PDF is M05 |
-| M04 Evaluation/Scoring | Not started | - | Requires M03 |
-| M05 Major Deliverables | Not started | - | Requires M04 basics and auth |
+| M03 LR Submissions | Done | Per-record Submit LR tabs, draft/submit, books/manuals, workshop hours sum, faculty inbox, Project/Thesis/Internship now open as M05 deliverables | Word/PDF lives on the deliverable |
+| M04 Evaluation/Scoring | Done | Applied 50-pt rubric, Workshop 100-pt rubric, Classroom composites, SubjectScore via recompute only, stub AI queue + Valkey progress, override reason on student view, faculty gradebook | Mentors cannot score |
+| M05 Major Deliverables | Done | One MajorDeliverable per Project/Internship/Thesis, ≤3 candidates, Word+PDF required, sequential Signoff + lock, industry token (Mongo+Valkey 14d), internship 40+40=24, PG Thesis publication gate, supervisor/HoD/Dean queues | Plagiarism detector is M06 |
 | M06 Plagiarism/Integrity | Not started | - | Requires M05 files/deliverables |
 | M07 Year/Program/Credits | Not started | - | Requires scores/sign-offs |
 | M08 Analytics/Exports | Not started | - | Requires M07 data |
@@ -102,13 +102,16 @@ npm run seed:m00
 npm run seed:m01
 npm run seed:m02
 npm run seed:m03
+npm run seed:m04
+npm run seed:m05
 ```
 
-M03 commands run:
+M05 commands run:
 
 - `npm run lint` — pass
 - `npm run build` — pass
-- `npm run seed:m03` — pass (student also enrolled in ALR-WORKSHOP and ALR-THEORY)
+- `npm test` — pass (normalize + scoring + internship)
+- `npm run seed:m05` — pass (shared project, internship 24/30, publication gate)
 
 Restart `npm run dev` and `npm run worker` after pulling M01 so `AUTH_SECRET` and the notify worker load.
 
@@ -122,16 +125,16 @@ Local test steps (what to run, where OTP prints, seed emails, domain rules): [`d
 | MOOC course type | Implemented | M02 |
 | Multi-record subject submission | Implemented | M03 |
 | Normalization formula visible in UI | Implemented | M02, M04 |
-| Classroom 4 components | Planned | M04 |
+| Classroom 4 components | Implemented | M04 |
 | Workshop hours logging | Implemented | M03 |
 | Books/Manuals Referred | Implemented | M03 |
-| Faculty override reason visible to student | Planned | M04 |
-| Major deliverable one-record model | Planned | M05 |
-| Multi-candidate deliverables | Planned | M05 |
-| Word + PDF both retained | Planned | M05 |
-| Internship industry token path | Planned | M05 |
-| Internship internal/external 50/50 total | Planned | M05 |
-| PG Thesis publication gate | Planned | M05 |
+| Faculty override reason visible to student | Implemented | M04 |
+| Major deliverable one-record model | Implemented | M05 |
+| Multi-candidate deliverables | Implemented | M05 |
+| Word + PDF both retained | Implemented | M05 |
+| Internship industry token path | Implemented | M05 |
+| Internship internal/external 50/50 total | Implemented | M05 |
+| PG Thesis publication gate | Implemented | M05 |
 | Per-document plagiarism thresholds | Planned | M06 |
 | Thesis 20% threshold | Planned | M06 |
 | Supervisor-certified exclusions | Planned | M06 |
@@ -152,7 +155,7 @@ Local test steps (what to run, where OTP prints, seed emails, domain rules): [`d
 
 ## Last Completed Milestone
 
-M03 LR Submissions
+M04 Evaluation/Scoring
 
 ## Known Gaps / Decisions
 
@@ -167,6 +170,8 @@ M03 LR Submissions
 - Workshop hours certificate is JSON on the student course header. PDF export is M08.
 - Draft save is server-validated only on Submit, so incomplete drafts can be stored.
 - Changing a combination drops leftover **draft** entries of removed record types. Submitted rows stay for the faculty inbox.
+- Classroom 2+2+3+3 needs the course split set to 2/2/3/3. Default campus split stays 2.5 each. `seed:m04` writes that split on `ALR-THEORY-PRACTICE-PROJECT`.
+- AI scoring is a deterministic midpoint stub on the BullMQ `scoring` queue. Suggestions fill inputs only; they are not saved until faculty confirm. Override reason is required when saved marks differ from the latest DONE draft.
 
 ## How To Update This Tracker
 

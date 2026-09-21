@@ -29,6 +29,7 @@ function prefix(href: string) {
 function facultyCourses(pathname: string) {
   if (pathname === "/faculty") return true
   if (pathname === "/faculty/courses/new") return false
+  if (pathname.startsWith("/faculty/deliverables")) return true
   return /^\/faculty\/courses\/[^/]+$/.test(pathname)
 }
 
@@ -66,6 +67,12 @@ export const WORKSPACE_NAV: Record<ShellRole, WorkspaceLink[]> = {
       icon: "plus",
       isActive: exact("/faculty/courses/new"),
     },
+    {
+      href: "/supervisor",
+      label: "Sign-off",
+      icon: "inbox",
+      isActive: prefix("/supervisor"),
+    },
   ],
   MENTOR: [
     {
@@ -78,24 +85,24 @@ export const WORKSPACE_NAV: Record<ShellRole, WorkspaceLink[]> = {
   SUPERVISOR: [
     {
       href: "/supervisor",
-      label: "Overview",
-      icon: "home",
+      label: "Sign-off queue",
+      icon: "inbox",
       isActive: prefix("/supervisor"),
     },
   ],
   HOD: [
     {
       href: "/hod",
-      label: "Overview",
-      icon: "home",
+      label: "Sign-off queue",
+      icon: "inbox",
       isActive: prefix("/hod"),
     },
   ],
   DEAN: [
     {
       href: "/dean",
-      label: "Overview",
-      icon: "home",
+      label: "Sign-off queue",
+      icon: "inbox",
       isActive: prefix("/dean"),
     },
   ],

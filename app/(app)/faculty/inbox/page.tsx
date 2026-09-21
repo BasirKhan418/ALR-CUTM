@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { FacultyInbox } from "@/components/faculty-inbox"
 import { Forbidden } from "@/components/forbidden"
 import { PageEnter } from "@/components/page-enter"
@@ -10,7 +9,6 @@ import { FacultyAssignment } from "@/lib/db/models/faculty-assignment"
 import { connectMongo } from "@/lib/db/mongo"
 import { firstShellHref } from "@/lib/domain/roles"
 import { loadFacultyInbox } from "@/lib/lr/queries"
-import { cn } from "@/lib/utils"
 import { Suspense } from "react"
 
 export default function FacultyInboxPage({
@@ -46,7 +44,13 @@ async function Loader({
     }).lean(),
   ])
   const assignedIds = new Set(assignments.map((item) => String(item.courseId)))
-  const assignedCourses = catalog.filter((course) => assignedIds.has(course.id))
+  const assignedCourses = catalog
+    .filter((course) => assignedIds.has(course.id))
+    .map((course) => ({
+      id: course.id,
+      code: course.code,
+      title: course.title,
+    }))
   const filterCourse = courseId
     ? assignedCourses.find((course) => course.id === courseId)
     : null
@@ -55,35 +59,13 @@ async function Loader({
     <PageEnter className="flex w-full flex-col gap-6">
       <PageHeader
         title="Inbox"
-        description={
-          filterCourse
-            ? `Submitted records for ${filterCourse.code}. Read only — scoring opens later.`
-            : "Submitted Classroom, Applied, and Workshop entries. Scoring opens later."
-        }
+        description="Filter by course or record type, then open a row to score it. Entry marks and the normalized subject contribution stay in the table."
       />
-      {filterCourse ? (
-        <Link
-          href="/faculty/inbox"
-          className="w-fit text-sm text-muted-foreground hover:text-foreground"
-        >
-          All assigned courses
-        </Link>
-      ) : assignedCourses.length > 1 ? (
-        <nav className="flex w-full flex-wrap gap-1 rounded-xl bg-muted p-1 sm:w-fit">
-          {assignedCourses.map((course) => (
-            <Link
-              key={course.id}
-              href={`/faculty/inbox?course=${course.id}`}
-              className={cn(
-                "inline-flex h-8 items-center rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              )}
-            >
-              {course.code}
-            </Link>
-          ))}
-        </nav>
-      ) : null}
-      <FacultyInbox items={items} />
+      <FacultyInbox
+        items={items}
+        courses={assignedCourses}
+        selectedCourseId={filterCourse?.id ?? ""}
+      />
     </PageEnter>
   )
 }

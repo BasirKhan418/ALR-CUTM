@@ -1,10 +1,16 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState, useTransition } from "react"
 import { CircleAlertIcon } from "lucide-react"
-import { saveLrEntry, type LrFormState } from "@/lib/actions/lr"
+import {
+  deleteLrDraft,
+  saveLrEntry,
+  type LrFormState,
+} from "@/lib/actions/lr"
 import { SubmitButton } from "@/components/submit-button"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Spinner } from "@/components/ui/spinner"
 import {
   Field,
   FieldDescription,
@@ -55,14 +61,35 @@ export function LrEntryForm({
   courseId,
   recordType,
   entry,
+  formKey,
+  canRemove = false,
+  removeLabel = "Remove",
+  onRemove,
 }: {
   courseId: string
   recordType: LiveLrRecordType
   entry?: LrEntryView
+  formKey?: string
+  canRemove?: boolean
+  removeLabel?: string
+  onRemove?: () => void
 }) {
   const [state, action] = useActionState(saveLrEntry, INITIAL)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [removing, startRemove] = useTransition()
   const current = entry ?? emptyEntry(courseId, recordType)
   const locked = current.status === "SUBMITTED"
+  const fieldId = current.id || formKey || "new"
+
+  function removeSavedDraft() {
+    if (!current.id) return
+    const data = new FormData()
+    data.set("entryId", current.id)
+    startRemove(async () => {
+      const result = await deleteLrDraft({ ok: false }, data)
+      if (!result.ok) setDeleteError(result.message ?? "That draft could not be removed.")
+    })
+  }
 
   return (
     <form
@@ -73,37 +100,66 @@ export function LrEntryForm({
       <input type="hidden" name="courseId" value={courseId} />
       <input type="hidden" name="recordType" value={recordType} />
       {current.id ? <input type="hidden" name="entryId" value={current.id} /> : null}
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-medium">
-          {headingFor(recordType, current)}
-        </p>
-        <Badge variant={locked ? "default" : "outline"}>
-          {locked ? "Submitted" : "Draft"}
-        </Badge>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-medium">
+            {headingFor(recordType, current)}
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {locked
+              ? "Locked after submit. Faculty score this from Inbox."
+              : "Save a draft anytime. Submit checks every required field."}
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <Badge variant={locked ? "default" : "outline"}>
+            {locked ? "Submitted" : "Draft"}
+          </Badge>
+          {canRemove && !locked ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={removing}
+              onClick={current.id ? removeSavedDraft : onRemove}
+            >
+              {removing ? (
+                <>
+                  <Spinner />
+                  Removing…
+                </>
+              ) : (
+                removeLabel
+              )}
+            </Button>
+          ) : null}
+        </div>
       </div>
-      <FieldGroup>
+      <FieldGroup className="gap-4">
         {recordType === "CLASSROOM_LEARNING" ? (
-          <ClassroomFields entry={current} locked={locked} />
+          <ClassroomFields entry={current} locked={locked} fieldId={fieldId} />
         ) : null}
         {recordType === "APPLIED_ACTION_LEARNING" ? (
-          <AppliedFields entry={current} locked={locked} />
+          <AppliedFields entry={current} locked={locked} fieldId={fieldId} />
         ) : null}
         {recordType === "ACTION_LEARNING" ? (
-          <WorkshopFields entry={current} locked={locked} />
+          <WorkshopFields entry={current} locked={locked} fieldId={fieldId} />
         ) : null}
         <Field>
-          <FieldLabel htmlFor={`${current.id || "new"}-booksManuals`}>
+          <FieldLabel htmlFor={`${fieldId}-booksManuals`}>
             Books / Manuals Referred
           </FieldLabel>
           <Textarea
-            id={`${current.id || "new"}-booksManuals`}
+            id={`${fieldId}-booksManuals`}
             name="booksManuals"
+            rows={3}
+            className="min-h-20"
             disabled={locked}
             defaultValue={current.booksManuals}
             placeholder="Title, author — or None"
           />
           <FieldDescription>
-            Required on every booklet sheet. Write None if you did not use any.
+            Required on submit. Write None if you did not use any.
           </FieldDescription>
         </Field>
         {state.message ? (
@@ -116,12 +172,19 @@ export function LrEntryForm({
             </FieldError>
           )
         ) : null}
+        {deleteError ? (
+          <FieldError className="flex items-center gap-1.5">
+            <CircleAlertIcon className="size-3.5" />
+            {deleteError}
+          </FieldError>
+        ) : null}
         {locked ? (
           <p className="text-sm text-muted-foreground">
-            Submitted. Faculty can read this record. Scoring opens later.
+            Submitted. Faculty will score this record from Inbox. Your
+            normalized subject contribution appears on this course page.
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <SubmitButton
               name="intent"
               value="draft"
@@ -133,9 +196,8 @@ export function LrEntryForm({
             <SubmitButton name="intent" value="submit" pendingLabel="Submitting…">
               Submit
             </SubmitButton>
-            <p className="w-full text-xs text-muted-foreground">
-              Save draft anytime. Submit checks every required field, including
-              Books/Manuals Referred.
+            <p className="text-xs text-muted-foreground sm:ml-1">
+              Books/Manuals Referred is required on submit.
             </p>
           </div>
         )}
@@ -159,11 +221,13 @@ function headingFor(recordType: LiveLrRecordType, entry: LrEntryView) {
 function ClassroomFields({
   entry,
   locked,
+  fieldId,
 }: {
   entry: LrEntryView
   locked: boolean
+  fieldId: string
 }) {
-  const id = entry.id || "new"
+  const id = fieldId
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -205,6 +269,8 @@ function ClassroomFields({
         <Textarea
           id={`${id}-reflection`}
           name="reflection"
+          rows={4}
+          className="min-h-24"
           disabled={locked}
           defaultValue={entry.reflection}
           placeholder="What you understood and what remains unclear"
@@ -217,11 +283,13 @@ function ClassroomFields({
 function AppliedFields({
   entry,
   locked,
+  fieldId,
 }: {
   entry: LrEntryView
   locked: boolean
+  fieldId: string
 }) {
-  const id = entry.id || "new"
+  const id = fieldId
   return (
     <>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -247,50 +315,62 @@ function AppliedFields({
           />
         </Field>
       </div>
-      <Field>
-        <FieldLabel htmlFor={`${id}-concept`}>Concept</FieldLabel>
-        <Textarea
-          id={`${id}-concept`}
-          name="concept"
-          disabled={locked}
-          defaultValue={entry.concept}
-        />
-        <FieldDescription>
-          Narrative only. Faculty enter the 10-mark rubric in the next milestone.
-        </FieldDescription>
-      </Field>
-      <Field>
-        <FieldLabel htmlFor={`${id}-planning`}>Planning and execution</FieldLabel>
-        <Textarea
-          id={`${id}-planning`}
-          name="planning"
-          disabled={locked}
-          defaultValue={entry.planning}
-        />
-      </Field>
-      <Field>
-        <FieldLabel htmlFor={`${id}-result`}>Result and interpretation</FieldLabel>
-        <Textarea
-          id={`${id}-result`}
-          name="result"
-          disabled={locked}
-          defaultValue={entry.result}
-        />
-      </Field>
-      <Field>
-        <FieldLabel htmlFor={`${id}-recordNotes`}>Record</FieldLabel>
-        <Textarea
-          id={`${id}-recordNotes`}
-          name="recordNotes"
-          disabled={locked}
-          defaultValue={entry.recordNotes}
-        />
-      </Field>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Field>
+          <FieldLabel htmlFor={`${id}-concept`}>Concept</FieldLabel>
+          <Textarea
+            id={`${id}-concept`}
+            name="concept"
+            rows={4}
+            className="min-h-24"
+            disabled={locked}
+            defaultValue={entry.concept}
+          />
+          <FieldDescription>
+            Narrative only. Faculty enter the rubric from Inbox.
+          </FieldDescription>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`${id}-planning`}>Planning and execution</FieldLabel>
+          <Textarea
+            id={`${id}-planning`}
+            name="planning"
+            rows={4}
+            className="min-h-24"
+            disabled={locked}
+            defaultValue={entry.planning}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`${id}-result`}>Result and interpretation</FieldLabel>
+          <Textarea
+            id={`${id}-result`}
+            name="result"
+            rows={4}
+            className="min-h-24"
+            disabled={locked}
+            defaultValue={entry.result}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`${id}-recordNotes`}>Record</FieldLabel>
+          <Textarea
+            id={`${id}-recordNotes`}
+            name="recordNotes"
+            rows={4}
+            className="min-h-24"
+            disabled={locked}
+            defaultValue={entry.recordNotes}
+          />
+        </Field>
+      </div>
       <Field>
         <FieldLabel htmlFor={`${id}-vivaNotes`}>Viva</FieldLabel>
         <Textarea
           id={`${id}-vivaNotes`}
           name="vivaNotes"
+          rows={3}
+          className="min-h-20"
           disabled={locked}
           defaultValue={entry.vivaNotes}
         />
@@ -302,22 +382,39 @@ function AppliedFields({
 function WorkshopFields({
   entry,
   locked,
+  fieldId,
 }: {
   entry: LrEntryView
   locked: boolean
+  fieldId: string
 }) {
-  const id = entry.id || "new"
+  const id = fieldId
   return (
     <>
-      <Field>
-        <FieldLabel htmlFor={`${id}-taskTitle`}>Task title</FieldLabel>
-        <Input
-          id={`${id}-taskTitle`}
-          name="taskTitle"
-          disabled={locked}
-          defaultValue={entry.taskTitle}
-        />
-      </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field>
+          <FieldLabel htmlFor={`${id}-taskTitle`}>Task title</FieldLabel>
+          <Input
+            id={`${id}-taskTitle`}
+            name="taskTitle"
+            disabled={locked}
+            defaultValue={entry.taskTitle}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor={`${id}-hoursContributed`}>Hours contributed</FieldLabel>
+          <Input
+            id={`${id}-hoursContributed`}
+            name="hoursContributed"
+            type="number"
+            min="0.5"
+            step="0.5"
+            disabled={locked}
+            defaultValue={entry.hoursContributed}
+          />
+          <FieldDescription>Hours, not session count.</FieldDescription>
+        </Field>
+      </div>
       <Field>
         <FieldLabel htmlFor={`${id}-criticalThinking`}>
           Critical thinking / fieldwork / report
@@ -325,22 +422,11 @@ function WorkshopFields({
         <Textarea
           id={`${id}-criticalThinking`}
           name="criticalThinking"
+          rows={4}
+          className="min-h-24"
           disabled={locked}
           defaultValue={entry.criticalThinking}
         />
-      </Field>
-      <Field>
-        <FieldLabel htmlFor={`${id}-hoursContributed`}>Hours contributed</FieldLabel>
-        <Input
-          id={`${id}-hoursContributed`}
-          name="hoursContributed"
-          type="number"
-          min="0.5"
-          step="0.5"
-          disabled={locked}
-          defaultValue={entry.hoursContributed}
-        />
-        <FieldDescription>Hours, not session count.</FieldDescription>
       </Field>
     </>
   )

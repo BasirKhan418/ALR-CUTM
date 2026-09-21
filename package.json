@@ -13,8 +13,10 @@
     "seed:m01": "tsx --env-file=.env.local scripts/seed-m01.ts",
     "seed:m02": "tsx --env-file=.env.local scripts/seed-m02.ts",
     "seed:m03": "tsx --env-file=.env.local scripts/seed-m03.ts",
+    "seed:m04": "tsx --env-file=.env.local scripts/seed-m04.ts",
+    "seed:m05": "tsx --env-file=.env.local scripts/seed-m05.ts",
     "ping:queue": "tsx --env-file=.env.local scripts/ping-queue.ts",
-    "test": "node --experimental-strip-types --test lib/domain/normalize.test.ts"
+    "test": "node --experimental-strip-types --test lib/domain/normalize.test.ts lib/domain/scoring.test.ts lib/domain/internship.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
