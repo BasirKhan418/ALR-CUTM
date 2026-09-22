@@ -11,6 +11,7 @@ import {
   InboxIcon,
   LandmarkIcon,
   PlusIcon,
+  ScaleIcon,
   SettingsIcon,
   ShieldIcon,
   UserCheckIcon,
@@ -42,6 +43,7 @@ const ROLE_ICONS: Record<ShellRole, ComponentType<{ className?: string }>> = {
   SUPERVISOR: UserCogIcon,
   HOD: Building2Icon,
   DEAN: LandmarkIcon,
+  COMMITTEE_MEMBER: ScaleIcon,
   ADMIN: SettingsIcon,
 }
 
@@ -54,6 +56,7 @@ const LINK_ICONS: Record<WorkspaceIcon, ComponentType<{ className?: string }>> =
   home: HomeIcon,
   mentor: UserCheckIcon,
   shield: ShieldIcon,
+  scale: ScaleIcon,
 }
 
 export function AppSidebar({

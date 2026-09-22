@@ -31,6 +31,7 @@ export function LrRecordPanel({
   staff = [],
   classmates = [],
   programming = null,
+  declarationLabel = null,
 }: {
   courseId: string
   recordType: RecordType
@@ -40,6 +41,7 @@ export function LrRecordPanel({
   staff?: StaffOption[]
   classmates?: EnrolledStudentOption[]
   programming?: ProgrammingUploadView | null
+  declarationLabel?: string | null
 }) {
   if (!required) {
     return (
@@ -71,6 +73,7 @@ export function LrRecordPanel({
       programming={
         recordType === "APPLIED_ACTION_LEARNING" ? programming : null
       }
+      declarationLabel={declarationLabel}
     />
   )
 }
@@ -80,11 +83,13 @@ function LiveRecordList({
   recordType,
   entries,
   programming,
+  declarationLabel,
 }: {
   courseId: string
   recordType: LiveLrRecordType
   entries: LrEntryView[]
   programming: ProgrammingUploadView | null
+  declarationLabel: string | null
 }) {
   const [extraIds, setExtraIds] = useState<string[]>(() =>
     entries.length === 0 ? ["blank-initial"] : []
@@ -115,6 +120,9 @@ function LiveRecordList({
 
   return (
     <div className="flex flex-col gap-4">
+      {declarationLabel ? (
+        <p className="text-xs text-muted-foreground">{declarationLabel}</p>
+      ) : null}
       {entries.map((entry) => (
         <LrEntryForm
           key={entry.id}

@@ -3,8 +3,10 @@ import path from "path"
 import { Types } from "mongoose"
 import { getEnv } from "@/lib/config/env"
 import {
+  writeArchivalPolicy,
   writePlagiarismHourlyCap,
   writePlagiarismThresholds,
+  writePlagiarismWarnPercent,
 } from "@/lib/catalog/settings"
 import { AuditLog } from "@/lib/db/models/audit-log"
 import { Course } from "@/lib/db/models/course"
@@ -61,6 +63,8 @@ async function seed() {
 
   await writePlagiarismThresholds(DEFAULT_PLAGIARISM_THRESHOLDS)
   await writePlagiarismHourlyCap(PLAGIARISM_HOURLY_CAP_DEFAULT)
+  await writePlagiarismWarnPercent(70)
+  await writeArchivalPolicy("WORKING_COPY_BESIDE_HARDBOUND")
 
   const project = await MajorDeliverable.findOne({
     title: "Campus solar tracker",

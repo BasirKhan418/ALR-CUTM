@@ -16,6 +16,7 @@ export const DEV_DIRECT_LOGIN_EMAILS = [
   "admin.bbsr@cutm.ac.in",
   "faculty.multi@cutm.ac.in",
   "student.pkd@cutm.ac.in",
+  "committee.bbsr@cutm.ac.in",
   ADMIN_GMAIL,
 ] as const
 

@@ -7,6 +7,7 @@ import {
   canRecommendOnCase,
   canRespondToCase,
   reportStatusForScore,
+  plagiarismRetryDelayMs,
   scoreAfterExclusions,
 } from "./plagiarism.ts"
 
@@ -25,6 +26,12 @@ test("excluding matches can drop a flagged score below the threshold", () => {
   const next = scoreAfterExclusions(matches, [{ matchId: "a" }], raw)
   assert.ok(next < 20)
   assert.equal(reportStatusForScore(next, 20, false), "CLEAR")
+})
+
+test("plagiarism retry waits 60s and doubles at 90 percent", () => {
+  assert.equal(plagiarismRetryDelayMs(70), 60_000)
+  assert.equal(plagiarismRetryDelayMs(90), 120_000)
+  assert.equal(plagiarismRetryDelayMs(100), 120_000)
 })
 
 test("programming uses the code job name, never the prose job", () => {

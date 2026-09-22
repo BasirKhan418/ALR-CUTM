@@ -56,6 +56,12 @@ export const APP_SHELL_NAV = [
     purpose: "Constitutes committees and signs year-wise and program-wise evaluation.",
   },
   {
+    role: "COMMITTEE_MEMBER",
+    href: "/committee",
+    label: "Committee",
+    purpose: "Scores the year-wise and programme five-criterion rubric.",
+  },
+  {
     role: "ADMIN",
     href: "/admin",
     label: "Admin",

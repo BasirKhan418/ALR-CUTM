@@ -429,3 +429,56 @@ Keep `npm run worker` running so `plagiarism.prose`, `plagiarism.code`, and `pla
 7. Sign in as `dean.bbsr@cutm.ac.in`. **Cases** → assign committee (supervisor is hidden). After a recommendation, **Ratify** or **Dismiss**. The internship leaves **Under committee review**.
 8. Sign in as the student. Open `ALR-THEORY-PRACTICE-PROJECT` → Applied. Programming Practice zip is present. The report tool is `STUB_CODE` and the job name is `plagiarism.code` — never `plagiarism.prose`.
 9. Audit / health job list: programming enqueue payload job is `plagiarism.code`. Over-cap jobs delay; they do not skip the limiter.
+
+---
+
+## 15. M07 — Year committee, credits, programme cumulation, exam cell
+
+```bash
+npm run seed:m01
+npm run seed:m07
+```
+
+Keep `npm run worker` running before you click **Export to exam cell**. The seed already writes the 2024-25 file.
+
+1. Sign in as `student.bbsr@cutm.ac.in`. **Credits** shows the Compulsory Basket as **2 / 4**. Years 2024-25 and 2025-26 each have 1 credit. 2024-25 exam cell is **Ready**.
+2. Sign in as `dean.bbsr@cutm.ac.in`. **Year evaluation**, choose **2025-26**. The student row is **Signed**, rubric **90 / 100**, credit posted. Open it. Compiled records for that year can be empty. PO/PSO and CO are **Missing**.
+3. **Programme evaluation** lists the same student because both years are signed. The formula line is `(80 + 90) / 2 × 100/100 = 85`. Assign the committee (`committee.bbsr@cutm.ac.in`), open the programme, **Cumulate year marks**. The stored cumulation is **85**.
+4. Sign in as `mentor.bbsr@cutm.ac.in`. **PO/PSO attainment** opens 2025-26. Sign a note. Sign in as `faculty.bbsr@cutm.ac.in`. **CO attainment** can sign `ALR-YEAR-2025`. Faculty has no PO/PSO sign button. A faculty-only session that posts the mentor action is rejected with “PO/PSO attainment requires the Mentor role.”
+5. Sign in as `committee.bbsr@cutm.ac.in` (dummy login, no OTP). **Assignments** lists both years. Sign-offs on 2024-25 include Dean, Committee, and Mentor with timestamps.
+6. As Dean, **Export to exam cell** on 2025-26. After the worker finishes, **Download JSON** contains student, year, marks, credits, and campus. A second credit post for the same student and year is rejected.
+7. Sign in as `hod.bbsr@cutm.ac.in`. **Year status** is read-only for the department.
+
+---
+
+## 16. M08 — Analytics, booklet, workshop certificate, health
+
+```bash
+npm run seed:m01
+npm run seed:m07
+```
+
+Keep `npm run worker` running. Each worker uses its own Valkey connection.
+
+1. Sign in as `admin.bbsr@cutm.ac.in`. **Analytics** defaults to Bhubaneswar. Note the cards. Switch campus to **Balasore** and apply. Every number changes, and the table does not mix Bhubaneswar students into Balasore. **All** is an explicit choice. **Exam cell** still downloads the year JSON. **Health** shows a numeric plagiarism hourly percent, Mongo and Valkey pings, and booklet queued/ready counts, with the headroom note.
+2. Sign in as `hod.bbsr@cutm.ac.in`. **Analytics** stays on Bhubaneswar and the HoD department. There is no campus switcher.
+3. Sign in as `student.bbsr@cutm.ac.in`. **Exports** → request a booklet for **2025-26**, then a workshop certificate for a course with Action Learning hours. Refresh until both are **READY** and download. The booklet text includes Cover, Certificate, Declaration, Index, and Rubric sheet, and the declaration matches the accepted text. The certificate shows the summed hours and a date range. Opening `/admin/analytics` is forbidden.
+4. Sign in as `faculty.bbsr@cutm.ac.in`. **Exports** can request a booklet for the Bhubaneswar student on an assigned course.
+
+---
+
+## 17. M09 — Archival policy, headroom, audit, locks
+
+```bash
+npm run seed:m01
+npm run seed:m06
+```
+
+Keep `npm run worker` running. Sign-in stays email + OTP and Google. There is no password, TOTP, or Better Auth.
+
+1. Sign in as `admin.bbsr@cutm.ac.in`. **Settings** shows archival policy **Working copy beside the hardbound booklet** and plagiarism **Warn at percent** 70. **People** links to Health, Analytics, Audit, and Exam cell.
+2. **Audit** lists actor, action, and time. Filter by action `year.sign` or `declaration`. The table does not show file contents.
+3. **Health** shows the hourly percent. The bar turns amber when usage reaches the warn percent. At 90% or more, Admin pages show a banner and new plagiarism jobs wait 120 seconds. Over-cap jobs delay; they do not skip the limiter.
+4. Change the archival policy to **Authoritative copy** and save. Request a new booklet. The PDF footer and the student **Exports** page quote “The digital Learning Record is the authoritative copy.”
+5. Sign in as `student.bbsr@cutm.ac.in`. A Learning Record form shows a read-only line `Accepted on {date} · v alr-declaration-v1`. There is no second declaration checkbox. Opening `/admin/analytics` is still forbidden.
+6. `npm run lint` and `npm run build` succeed. A classroom entry can still be scored to the normalized 10% weight.

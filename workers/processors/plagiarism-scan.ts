@@ -1,7 +1,7 @@
 import { DelayedError, type Job } from "bullmq"
 import { PlagiarismReport } from "@/lib/db/models/plagiarism-report"
 import { connectMongo } from "@/lib/db/mongo"
-import { CODE_JOB, PROSE_JOB } from "@/lib/domain/plagiarism"
+import { CODE_JOB, PROSE_JOB, plagiarismRetryDelayMs } from "@/lib/domain/plagiarism"
 import { openCaseIfNeeded } from "@/lib/plagiarism/cases"
 import {
   codeCorpus,
@@ -23,7 +23,7 @@ export async function processPlagiarismScan(job: Job<ScanJob>) {
   await connectMongo()
   const slot = await consumePlagiarismSlot(job.data.campusId)
   if (!slot.allowed) {
-    await job.moveToDelayed(Date.now() + 60_000)
+    await job.moveToDelayed(Date.now() + plagiarismRetryDelayMs(slot.percent))
     throw new DelayedError()
   }
 

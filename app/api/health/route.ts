@@ -1,5 +1,6 @@
 import mongoose from "mongoose"
 import { connection } from "next/server"
+import { ExportRequest } from "@/lib/db/models/export-request"
 import { PlagiarismReport } from "@/lib/db/models/plagiarism-report"
 import { connectMongo } from "@/lib/db/mongo"
 import { withTimeout } from "@/lib/health"
@@ -23,6 +24,8 @@ export async function GET() {
   let plagiarismUsed = 0
   let plagiarismCap = 0
   let plagiarismPercent = 0
+  let bookletQueued = 0
+  let bookletReady = 0
 
   try {
     await withTimeout(connectMongo(), PING_MS, "mongo")
@@ -32,6 +35,10 @@ export async function GET() {
       "mongo-ping"
     )
     failedReports = await PlagiarismReport.countDocuments({ status: "FAILED" })
+    ;[bookletQueued, bookletReady] = await Promise.all([
+      ExportRequest.countDocuments({ kind: "BOOKLET", status: "QUEUED" }),
+      ExportRequest.countDocuments({ kind: "BOOKLET", status: "READY" }),
+    ])
     mongo = "ok"
   } catch {
     mongo = "error"
@@ -92,6 +99,10 @@ export async function GET() {
         cap: plagiarismCap,
         percent: plagiarismPercent,
         failedReports,
+      },
+      booklet: {
+        queued: bookletQueued,
+        ready: bookletReady,
       },
     },
     { status: ok ? 200 : 503 }

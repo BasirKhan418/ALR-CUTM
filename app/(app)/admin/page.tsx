@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Suspense } from "react"
 import { AdminPeople, type AdminPerson } from "@/components/admin-people"
 import { AdminSkeleton } from "@/components/app-shell-skeleton"
@@ -8,6 +9,8 @@ import { Campus } from "@/lib/db/models/campus"
 import { User } from "@/lib/db/models/user"
 import { connectMongo } from "@/lib/db/mongo"
 import { firstShellHref } from "@/lib/domain/roles"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export default function AdminPage() {
   return (
@@ -44,7 +47,23 @@ async function AdminPeopleLoader() {
   }))
 
   return (
-    <PageEnter>
+    <PageEnter className="flex w-full flex-col gap-4">
+      <nav className="flex flex-wrap gap-2">
+        {[
+          ["/admin/health", "Health"],
+          ["/admin/analytics", "Analytics"],
+          ["/admin/audit", "Audit"],
+          ["/admin/exports", "Exam cell"],
+        ].map(([href, label]) => (
+          <Link
+            key={href}
+            href={href}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+          >
+            {label}
+          </Link>
+        ))}
+      </nav>
       <AdminPeople
         people={people}
         currentUserId={session.userId}

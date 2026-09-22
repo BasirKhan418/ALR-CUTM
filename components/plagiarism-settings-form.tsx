@@ -26,9 +26,11 @@ const INITIAL: PlagiarismFormState = { ok: false }
 export function PlagiarismSettingsForm({
   thresholds,
   hourlyCap,
+  warnPercent,
 }: {
   thresholds: Record<PlagiarismDocumentType, number>
   hourlyCap: number
+  warnPercent: number
 }) {
   const [state, action] = useActionState(savePlagiarismSettings, INITIAL)
   return (
@@ -60,6 +62,19 @@ export function PlagiarismSettingsForm({
               step="1"
               required
               defaultValue={hourlyCap}
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="warnPercent">Warn at percent</FieldLabel>
+            <Input
+              id="warnPercent"
+              name="warnPercent"
+              type="number"
+              min={1}
+              max={100}
+              step="1"
+              required
+              defaultValue={warnPercent}
             />
           </Field>
         </div>

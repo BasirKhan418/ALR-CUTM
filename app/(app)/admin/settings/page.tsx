@@ -1,5 +1,7 @@
+import { ArchivalPolicyForm } from "@/components/archival-policy-form"
 import { ClassroomWeightsForm } from "@/components/classroom-weights-form"
 import { PlagiarismSettingsForm } from "@/components/plagiarism-settings-form"
+import { TierSettingsForm } from "@/components/tier-forms"
 import { Forbidden } from "@/components/forbidden"
 import { PageEnter } from "@/components/page-enter"
 import { PageHeader } from "@/components/page-header"
@@ -7,10 +9,13 @@ import { TermForm } from "@/components/term-form"
 import { WorkspaceSkeleton } from "@/components/app-shell-skeleton"
 import { hasRole, requireSession } from "@/lib/auth/guards"
 import {
+  readArchivalPolicy,
   readClassroomComposites,
   readPlagiarismHourlyCap,
   readPlagiarismThresholds,
+  readPlagiarismWarnPercent,
 } from "@/lib/catalog/settings"
+import { readTierSettings } from "@/lib/tiers/settings"
 import { Term } from "@/lib/db/models/term"
 import { connectMongo } from "@/lib/db/mongo"
 import { firstShellHref } from "@/lib/domain/roles"
@@ -30,12 +35,16 @@ async function Loader() {
     return <Forbidden homeHref={firstShellHref(session.roles)} />
   }
   await connectMongo()
-  const [defaults, terms, thresholds, hourlyCap] = await Promise.all([
-    readClassroomComposites(),
-    Term.find().sort({ startsAt: -1 }).lean(),
-    readPlagiarismThresholds(),
-    readPlagiarismHourlyCap(),
-  ])
+  const [defaults, terms, thresholds, hourlyCap, warnPercent, archivalPolicy, tierSettings] =
+    await Promise.all([
+      readClassroomComposites(),
+      Term.find().sort({ startsAt: -1 }).lean(),
+      readPlagiarismThresholds(),
+      readPlagiarismHourlyCap(),
+      readPlagiarismWarnPercent(),
+      readArchivalPolicy(),
+      readTierSettings(),
+    ])
 
   return (
     <PageEnter className="flex w-full flex-col gap-6">
@@ -79,7 +88,31 @@ async function Loader() {
             Thesis defaults to 20. Programming uses the code-similarity engine.
           </p>
         </div>
-        <PlagiarismSettingsForm thresholds={thresholds} hourlyCap={hourlyCap} />
+        <PlagiarismSettingsForm
+          thresholds={thresholds}
+          hourlyCap={hourlyCap}
+          warnPercent={warnPercent}
+        />
+      </section>
+      <section className="flex flex-col gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10 sm:p-5 xl:col-span-2">
+        <div>
+          <h2 className="font-heading text-lg font-semibold">
+            Year and programme rubric
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Five criteria, 20 marks each. Programme cumulation is the equal-weight mean of year totals, scaled by the setting below.
+          </p>
+        </div>
+        <TierSettingsForm settings={tierSettings} />
+      </section>
+      <section className="flex flex-col gap-3 rounded-xl bg-card p-4 ring-1 ring-foreground/10 sm:p-5 xl:col-span-2">
+        <div>
+          <h2 className="font-heading text-lg font-semibold">Archival policy</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            The next booklet PDF and the student exports page quote this sentence.
+          </p>
+        </div>
+        <ArchivalPolicyForm policy={archivalPolicy} />
       </section>
       </div>
     </PageEnter>

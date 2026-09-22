@@ -5,9 +5,11 @@ import { readPlagiarismThresholds } from "@/lib/catalog/settings"
 import {
   CODE_JOB,
   PROSE_JOB,
+  plagiarismRetryDelayMs,
   type PlagiarismDocumentType,
   type PlagiarismTargetType,
 } from "@/lib/domain/plagiarism"
+import { plagiarismUsage } from "@/lib/plagiarism/rate-limit"
 import { codeSimilarityQueue, plagiarismQueue } from "@/lib/queue/queues"
 
 export async function enqueuePlagiarismScan(input: {
@@ -56,6 +58,8 @@ export async function enqueuePlagiarismScan(input: {
     { upsert: true }
   )
   const queue = input.job === CODE_JOB ? codeSimilarityQueue() : plagiarismQueue()
+  const usage = await plagiarismUsage(input.campusId)
+  const headroomDelay = usage.percent >= 90 ? plagiarismRetryDelayMs(usage.percent) : 0
   await queue.add(
     input.job,
     {
@@ -64,7 +68,12 @@ export async function enqueuePlagiarismScan(input: {
       targetId: input.targetId,
       documentType: input.documentType,
     },
-    { removeOnComplete: 100, attempts: 8, backoff: { type: "exponential", delay: 15_000 } }
+    {
+      delay: headroomDelay,
+      removeOnComplete: 100,
+      attempts: 8,
+      backoff: { type: "exponential", delay: 15_000 },
+    }
   )
   if (input.actorId) {
     await AuditLog.create({

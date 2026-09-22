@@ -24,6 +24,8 @@ export const DEFAULT_PLAGIARISM_THRESHOLDS: Record<
 }
 
 export const PLAGIARISM_HOURLY_CAP_DEFAULT = 100
+export const PLAGIARISM_WARN_PERCENT_DEFAULT = 70
+export const PLAGIARISM_RETRY_MS = 60_000
 export const PLAGIARISM_CASE_RESPONSE_DAYS = 7
 
 export const PLAGIARISM_TOOLS = ["STUB_PROSE", "STUB_CODE", "TURNITIN"] as const
@@ -60,6 +62,11 @@ export const CASE_TIMEOUT_JOB = "plagiarism.case.timeout"
 
 export const THRESHOLDS_SETTING = "plagiarismThresholds"
 export const HOURLY_CAP_SETTING = "plagiarismHourlyCap"
+export const WARN_PERCENT_SETTING = "plagiarismWarnPercent"
+
+export function plagiarismRetryDelayMs(percent: number) {
+  return percent >= 90 ? PLAGIARISM_RETRY_MS * 2 : PLAGIARISM_RETRY_MS
+}
 
 export type PlagiarismMatch = {
   id: string

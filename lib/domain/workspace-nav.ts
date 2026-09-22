@@ -10,6 +10,7 @@ export type WorkspaceIcon =
   | "home"
   | "mentor"
   | "shield"
+  | "scale"
 
 export type WorkspaceLink = {
   href: string
@@ -25,6 +26,28 @@ function exact(href: string) {
 function prefix(href: string) {
   return (pathname: string) =>
     pathname === href || pathname.startsWith(`${href}/`)
+}
+
+function deanQueue(pathname: string) {
+  if (pathname === "/dean") return true
+  if (
+    pathname.startsWith("/dean/cases") ||
+    pathname.startsWith("/dean/years") ||
+    pathname.startsWith("/dean/program") ||
+    pathname.startsWith("/dean/records") ||
+    pathname.startsWith("/dean/analytics")
+  ) {
+    return false
+  }
+  return /^\/dean\/[^/]+$/.test(pathname)
+}
+
+function hodQueue(pathname: string) {
+  if (pathname === "/hod") return true
+  if (pathname.startsWith("/hod/years") || pathname.startsWith("/hod/analytics")) {
+    return false
+  }
+  return pathname.startsWith("/hod/")
 }
 
 function facultyCourses(pathname: string) {
@@ -54,6 +77,18 @@ export const WORKSPACE_NAV: Record<ShellRole, WorkspaceLink[]> = {
       label: "Cases",
       icon: "shield",
       isActive: prefix("/student/cases"),
+    },
+    {
+      href: "/student/credits",
+      label: "Credits",
+      icon: "scale",
+      isActive: prefix("/student/credits"),
+    },
+    {
+      href: "/student/exports",
+      label: "Exports",
+      icon: "home",
+      isActive: prefix("/student/exports"),
     },
   ],
   FACULTY: [
@@ -87,13 +122,32 @@ export const WORKSPACE_NAV: Record<ShellRole, WorkspaceLink[]> = {
       icon: "shield",
       isActive: prefix("/faculty/cases"),
     },
+    {
+      href: "/faculty/attainment",
+      label: "CO attainment",
+      icon: "scale",
+      isActive: prefix("/faculty/attainment"),
+    },
+    {
+      href: "/faculty/exports",
+      label: "Exports",
+      icon: "home",
+      isActive: prefix("/faculty/exports"),
+    },
   ],
   MENTOR: [
     {
       href: "/mentor",
       label: "PO / PSO courses",
       icon: "mentor",
-      isActive: prefix("/mentor"),
+      isActive: (pathname) =>
+        pathname === "/mentor" || pathname.startsWith("/mentor/courses"),
+    },
+    {
+      href: "/mentor/attainment",
+      label: "PO/PSO attainment",
+      icon: "scale",
+      isActive: prefix("/mentor/attainment"),
     },
   ],
   SUPERVISOR: [
@@ -109,7 +163,19 @@ export const WORKSPACE_NAV: Record<ShellRole, WorkspaceLink[]> = {
       href: "/hod",
       label: "Sign-off queue",
       icon: "inbox",
-      isActive: prefix("/hod"),
+      isActive: hodQueue,
+    },
+    {
+      href: "/hod/years",
+      label: "Year status",
+      icon: "scale",
+      isActive: prefix("/hod/years"),
+    },
+    {
+      href: "/hod/analytics",
+      label: "Analytics",
+      icon: "home",
+      isActive: prefix("/hod/analytics"),
     },
   ],
   DEAN: [
@@ -117,14 +183,31 @@ export const WORKSPACE_NAV: Record<ShellRole, WorkspaceLink[]> = {
       href: "/dean",
       label: "Sign-off queue",
       icon: "inbox",
-      isActive: (pathname) =>
-        pathname === "/dean" || /^\/dean\/[^/]+$/.test(pathname),
+      isActive: deanQueue,
+    },
+    {
+      href: "/dean/years",
+      label: "Year evaluation",
+      icon: "scale",
+      isActive: prefix("/dean/years"),
+    },
+    {
+      href: "/dean/program",
+      label: "Programme evaluation",
+      icon: "courses",
+      isActive: prefix("/dean/program"),
     },
     {
       href: "/dean/cases",
       label: "Cases",
       icon: "shield",
       isActive: prefix("/dean/cases"),
+    },
+    {
+      href: "/dean/analytics",
+      label: "Analytics",
+      icon: "home",
+      isActive: prefix("/dean/analytics"),
     },
   ],
   ADMIN: [
@@ -159,10 +242,36 @@ export const WORKSPACE_NAV: Record<ShellRole, WorkspaceLink[]> = {
       isActive: prefix("/admin/cases"),
     },
     {
+      href: "/admin/audit",
+      label: "Audit",
+      icon: "shield",
+      isActive: exact("/admin/audit"),
+    },
+    {
       href: "/admin/health",
       label: "Health",
       icon: "home",
       isActive: exact("/admin/health"),
+    },
+    {
+      href: "/admin/exports",
+      label: "Exam cell",
+      icon: "scale",
+      isActive: exact("/admin/exports"),
+    },
+    {
+      href: "/admin/analytics",
+      label: "Analytics",
+      icon: "home",
+      isActive: prefix("/admin/analytics"),
+    },
+  ],
+  COMMITTEE_MEMBER: [
+    {
+      href: "/committee",
+      label: "Assignments",
+      icon: "scale",
+      isActive: prefix("/committee"),
     },
   ],
 }

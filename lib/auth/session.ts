@@ -95,10 +95,16 @@ export async function refreshSessionIfNeeded(
   }
   const next = { ...record, createdAt: Date.now() }
   await writeSessionRecord(sid, next)
-  const jar = await cookies()
-  const home = jar.get(HOME_COOKIE)?.value || firstShellHref(record.roles)
-  const role = jar.get(ROLE_COOKIE)?.value
-  await attachSessionCookies(sid, home, role)
+  try {
+    const jar = await cookies()
+    const home = jar.get(HOME_COOKIE)?.value || firstShellHref(record.roles)
+    const role = jar.get(ROLE_COOKIE)?.value
+    await attachSessionCookies(sid, home, role)
+  } catch {
+    // Next.js only allows cookie writes in a Server Action or Route Handler.
+    // getSession runs during render, so the sliding cookie maxAge is skipped
+    // there. The Valkey record and TTL were already extended above.
+  }
   return next
 }
 

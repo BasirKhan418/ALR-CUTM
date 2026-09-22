@@ -83,6 +83,30 @@ export async function saveUploadedFile(input: {
   return { ok: true as const, fileId: String(id) }
 }
 
+export async function saveGeneratedFile(input: {
+  campusId: string
+  uploadedBy: string
+  originalName: string
+  bytes: Buffer
+}) {
+  const id = new Types.ObjectId()
+  const dir = path.join(fileRoot(), input.campusId)
+  await mkdir(dir, { recursive: true })
+  const storagePath = path.join(input.campusId, String(id))
+  await writeFile(path.join(fileRoot(), storagePath), input.bytes)
+  await StoredFile.create({
+    _id: id,
+    campusId: input.campusId,
+    uploadedBy: input.uploadedBy,
+    originalName: input.originalName,
+    mimeType: PDF_MIME,
+    byteSize: input.bytes.length,
+    storagePath,
+    kind: "PDF",
+  })
+  return String(id)
+}
+
 export async function readStoredFile(storagePath: string) {
   return readFile(path.join(fileRoot(), storagePath))
 }

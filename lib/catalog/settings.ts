@@ -5,9 +5,18 @@ import {
   HOURLY_CAP_SETTING,
   PLAGIARISM_DOCUMENT_TYPES,
   PLAGIARISM_HOURLY_CAP_DEFAULT,
+  PLAGIARISM_WARN_PERCENT_DEFAULT,
   THRESHOLDS_SETTING,
+  WARN_PERCENT_SETTING,
   type PlagiarismDocumentType,
 } from "@/lib/domain/plagiarism"
+import {
+  ARCHIVAL_POLICY_DEFAULT,
+  ARCHIVAL_POLICIES,
+  ARCHIVAL_SETTING,
+  archivalSentence,
+  type ArchivalPolicy,
+} from "@/lib/domain/archival"
 import {
   CLASSROOM_COMPOSITE_DEFAULT,
   CLASSROOM_COMPOSITE_KEYS,
@@ -83,6 +92,54 @@ export async function readPlagiarismHourlyCap() {
   const row = await Setting.findOne({ key: HOURLY_CAP_SETTING }).lean()
   const value = Number(row?.value)
   return Number.isFinite(value) && value > 0 ? value : PLAGIARISM_HOURLY_CAP_DEFAULT
+}
+
+export async function readPlagiarismWarnPercent() {
+  await connectMongo()
+  const row = await Setting.findOne({ key: WARN_PERCENT_SETTING }).lean()
+  const value = Number(row?.value)
+  return Number.isFinite(value) && value >= 1 && value <= 100
+    ? value
+    : PLAGIARISM_WARN_PERCENT_DEFAULT
+}
+
+export async function writePlagiarismWarnPercent(percent: number) {
+  if (!Number.isFinite(percent) || percent < 1 || percent > 100) {
+    throw new Error("Plagiarism warn percent must be between 1 and 100.")
+  }
+  await connectMongo()
+  await Setting.findOneAndUpdate(
+    { key: WARN_PERCENT_SETTING },
+    { $set: { key: WARN_PERCENT_SETTING, value: percent } },
+    { upsert: true }
+  )
+  return percent
+}
+
+export async function readArchivalPolicy(): Promise<ArchivalPolicy> {
+  await connectMongo()
+  const row = await Setting.findOne({ key: ARCHIVAL_SETTING }).lean()
+  const value = String(row?.value ?? "")
+  return ARCHIVAL_POLICIES.includes(value as ArchivalPolicy)
+    ? (value as ArchivalPolicy)
+    : ARCHIVAL_POLICY_DEFAULT
+}
+
+export async function writeArchivalPolicy(policy: ArchivalPolicy) {
+  if (!ARCHIVAL_POLICIES.includes(policy)) {
+    throw new Error("Choose an archival policy.")
+  }
+  await connectMongo()
+  await Setting.findOneAndUpdate(
+    { key: ARCHIVAL_SETTING },
+    { $set: { key: ARCHIVAL_SETTING, value: policy } },
+    { upsert: true }
+  )
+  return policy
+}
+
+export async function readArchivalSentence() {
+  return archivalSentence(await readArchivalPolicy())
 }
 
 export async function writePlagiarismHourlyCap(cap: number) {

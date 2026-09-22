@@ -8,6 +8,7 @@ import { WorkspaceSkeleton } from "@/components/app-shell-skeleton"
 import { Badge } from "@/components/ui/badge"
 import { SubjectScoreCard } from "@/components/subject-score-card"
 import { hasRole, requireSession } from "@/lib/auth/guards"
+import { DECLARATION_VERSION } from "@/lib/domain/declaration"
 import { loadCampusCatalog } from "@/lib/catalog/queries"
 import { Enrollment } from "@/lib/db/models/enrollment"
 import { MajorDeliverable } from "@/lib/db/models/major-deliverable"
@@ -230,6 +231,11 @@ async function Loader({
               staff={staff}
               classmates={classmates}
               programming={programming}
+              declarationLabel={
+                session.declarationAcceptedAt
+                  ? `Accepted on ${session.declarationAcceptedAt.slice(0, 10)} · v ${DECLARATION_VERSION}`
+                  : null
+              }
             />
           ) : (
             <div className="rounded-xl bg-card p-8 text-sm text-muted-foreground ring-1 ring-foreground/10">

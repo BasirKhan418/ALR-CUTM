@@ -19,7 +19,13 @@ import { formatMarks } from "@/lib/scoring/format"
 import { formatWhen } from "@/lib/ui/format"
 import { cn } from "@/lib/utils"
 
-export function FacultyEntryDetail({ entry }: { entry: ScoreableEntry }) {
+export function FacultyEntryDetail({
+  entry,
+  readOnly = false,
+}: {
+  entry: ScoreableEntry
+  readOnly?: boolean
+}) {
   const title = headline(entry)
   const fields = fieldsFor(entry)
   const saved = savedMarks(entry)
@@ -77,6 +83,7 @@ export function FacultyEntryDetail({ entry }: { entry: ScoreableEntry }) {
             muted
           />
         </div>
+        {readOnly ? null : (
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
             href={`/faculty/courses/${entry.courseId}?tab=gradebook`}
@@ -93,6 +100,7 @@ export function FacultyEntryDetail({ entry }: { entry: ScoreableEntry }) {
             </Link>
           ) : null}
         </div>
+        )}
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)]">
@@ -119,7 +127,16 @@ export function FacultyEntryDetail({ entry }: { entry: ScoreableEntry }) {
           </dl>
         </section>
 
-        {entry.recordType === "CLASSROOM_LEARNING" ? (
+        {readOnly ? (
+          <section className="rounded-xl bg-card p-4 text-sm leading-6 ring-1 ring-foreground/10 sm:p-5">
+            <h2 className="font-heading text-lg font-semibold">Marks on record</h2>
+            <p className="mt-2 text-muted-foreground">
+              {saved
+                ? `${formatMarks(saved.total)} / ${saved.max}`
+                : "This record has no faculty score yet."}
+            </p>
+          </section>
+        ) : entry.recordType === "CLASSROOM_LEARNING" ? (
           <section className="rounded-xl bg-card p-4 text-sm leading-6 text-muted-foreground ring-1 ring-foreground/10 sm:p-5">
             <h2 className="font-heading text-lg font-semibold text-foreground">
               Classroom scoring

@@ -12,6 +12,8 @@ export type SignoffDecision = (typeof SIGNOFF_DECISIONS)[number]
 export const SIGNOFF_TARGET_TYPES = [
   "MAJOR_DELIVERABLE",
   "PAPER_PUBLICATION",
+  "YEAR_EVALUATION",
+  "PROGRAM_EVALUATION",
 ] as const
 
 export type SignoffTargetType = (typeof SIGNOFF_TARGET_TYPES)[number]

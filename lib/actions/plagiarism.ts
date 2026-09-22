@@ -4,9 +4,12 @@ import { Types } from "mongoose"
 import { revalidatePath } from "next/cache"
 import { hasRole, requireSession } from "@/lib/auth/guards"
 import {
+  writeArchivalPolicy,
   writePlagiarismHourlyCap,
+  writePlagiarismWarnPercent,
   writePlagiarismThresholds,
 } from "@/lib/catalog/settings"
+import { ARCHIVAL_POLICIES, type ArchivalPolicy } from "@/lib/domain/archival"
 import { AuditLog } from "@/lib/db/models/audit-log"
 import { FacultyAssignment } from "@/lib/db/models/faculty-assignment"
 import { MajorDeliverable } from "@/lib/db/models/major-deliverable"
@@ -38,6 +41,7 @@ import {
   restoreDeliverableFromCase,
 } from "@/lib/plagiarism/cases"
 import { enqueuePlagiarismScan } from "@/lib/plagiarism/enqueue"
+import { withCaseLock } from "@/lib/signoff/lock"
 
 export type PlagiarismFormState = {
   ok: boolean
@@ -341,20 +345,24 @@ export async function decidePlagiarismCase(
   if (row.status !== "COMMITTEE_RECOMMENDED") {
     return { ok: false, message: "The committee must recommend before ratification." }
   }
-  row.status = decision
-  await row.save()
-  await restoreDeliverableFromCase(caseId)
-  await AuditLog.create({
-    actorId: session.userId,
-    action: "plagiarism.decide",
-    payload: { caseId, decision },
+  const locked = await withCaseLock(caseId, async () => {
+    row.status = decision
+    await row.save()
+    await restoreDeliverableFromCase(caseId)
+    await AuditLog.create({
+      actorId: session.userId,
+      action: "plagiarism.decide",
+      payload: { caseId, decision },
+    })
+    invalidateIntegrity(row.courseId ? String(row.courseId) : null, caseId)
+    return {
+      ok: true as const,
+      message:
+        decision === "DISMISSED" ? "Case dismissed." : "Council ratification recorded.",
+    }
   })
-  invalidateIntegrity(row.courseId ? String(row.courseId) : null, caseId)
-  return {
-    ok: true,
-    message:
-      decision === "DISMISSED" ? "Case dismissed." : "Council ratification recorded.",
-  }
+  if (!locked.ok) return { ok: false, message: locked.message }
+  return locked.value
 }
 
 export async function savePlagiarismSettings(
@@ -377,12 +385,17 @@ export async function savePlagiarismSettings(
   if (!Number.isFinite(cap) || cap < 1) {
     return { ok: false, message: "Hourly cap must be at least 1." }
   }
+  const warnPercent = Number(formData.get("warnPercent") ?? "")
+  if (!Number.isFinite(warnPercent) || warnPercent < 1 || warnPercent > 100) {
+    return { ok: false, message: "Warn percent must be between 1 and 100." }
+  }
   await writePlagiarismThresholds(thresholds)
   await writePlagiarismHourlyCap(cap)
+  await writePlagiarismWarnPercent(warnPercent)
   await AuditLog.create({
     actorId: session.userId,
     action: "plagiarism.settings",
-    payload: { cap },
+    payload: { cap, warnPercent },
   })
   revalidatePath("/admin/settings")
   revalidatePath("/admin/health")
@@ -452,5 +465,28 @@ export async function uploadProgrammingZip(
   })
   invalidateIntegrity(courseId)
   return { ok: true, message: "Zip saved. Code similarity is queued — not the prose engine." }
+}
+
+export async function saveArchivalPolicy(
+  _prev: PlagiarismFormState,
+  formData: FormData
+): Promise<PlagiarismFormState> {
+  const session = await requireSession()
+  if (!hasRole(session, "ADMIN")) {
+    return { ok: false, message: "Only Admin can change the archival policy." }
+  }
+  const policy = String(formData.get("policy") ?? "")
+  if (!ARCHIVAL_POLICIES.includes(policy as ArchivalPolicy)) {
+    return { ok: false, message: "Choose an archival policy." }
+  }
+  await writeArchivalPolicy(policy as ArchivalPolicy)
+  await AuditLog.create({
+    actorId: session.userId,
+    action: "archival.policy",
+    payload: { policy },
+  })
+  revalidatePath("/admin/settings")
+  revalidatePath("/student/exports")
+  return { ok: true, message: "Archival policy saved. The next booklet uses it." }
 }
 

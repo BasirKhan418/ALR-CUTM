@@ -4,9 +4,9 @@ Update this file at the end of every milestone implementation. It is the handoff
 
 ## Current State
 
-Status: `M06 shipped`
+Status: `M09 shipped`
 
-M00–M06 are in the tree. Sign-in is email + OTP and optional Google. Sessions are opaque `alr_session` cookies in Valkey (7 days). Courses use the 12-way combination map. Students file Classroom, Applied, and Workshop entries, plus one shared Major Deliverable per Project / Internship / PG Thesis (Word + PDF, sequential sign-off). Assigned faculty score Applied/Workshop rubrics and Classroom composites. Subject contributions are always normalized — never a raw average. Internship totals come from internal/50 + external/50, each half of 30. PG Thesis evaluation is gated on an approved Paper Publication Report. Integrity uses per-document thresholds (Thesis 20, Project 30), supervisor-certified exclusions, a real case workflow, and a separate code-similarity queue for Programming Practice.
+M00–M07 are in the tree. Sign-in is email + OTP and optional Google. Sessions are opaque `alr_session` cookies in Valkey (7 days). Courses use the 12-way combination map. Students file Classroom, Applied, and Workshop entries, plus one shared Major Deliverable per Project / Internship / PG Thesis (Word + PDF, sequential sign-off). Assigned faculty score Applied/Workshop rubrics and Classroom composites. Subject contributions are always normalized — never a raw average. Internship totals come from internal/50 + external/50, each half of 30. PG Thesis evaluation is gated on an approved Paper Publication Report. Integrity uses per-document thresholds (Thesis 20, Project 30), supervisor-certified exclusions, a real case workflow, and a separate code-similarity queue for Programming Practice. Year-wise committees score the 100-mark five-criterion rubric and post 1 Compulsory Basket credit per academic year. Programme evaluation cumulates those year totals and exports to the exam cell. HoD, Dean, and Admin analytics stay on one campus unless Admin or Dean explicitly choose All. Students download a Learning Record PDF and a workshop hours certificate from the exports queue.
 
 ## What We Are Building
 
@@ -41,10 +41,10 @@ ALR is a Next.js 16 digital Learning Record platform for Centurion University. I
 | M03 LR Submissions | Done | Per-record Submit LR tabs, draft/submit, books/manuals, workshop hours sum, faculty inbox, Project/Thesis/Internship now open as M05 deliverables | Word/PDF lives on the deliverable |
 | M04 Evaluation/Scoring | Done | Applied 50-pt rubric, Workshop 100-pt rubric, Classroom composites, SubjectScore via recompute only, stub AI queue + Valkey progress, override reason on student view, faculty gradebook | Mentors cannot score |
 | M05 Major Deliverables | Done | One MajorDeliverable per Project/Internship/Thesis, ≤3 candidates, Word+PDF required, sequential Signoff + lock, industry token (Mongo+Valkey 14d), internship 40+40=24, PG Thesis publication gate, supervisor/HoD/Dean queues | Plagiarism detector is M06 |
-| M06 Plagiarism/Integrity | Done | Per-type thresholds (Thesis 20), stub prose/code providers, exclusions with certificate, OPEN→…→RATIFIED/DISMISSED cases, UNDER_COMMITTEE_REVIEW, programming zip on `plagiarism.code`, hourly cap + health % | Do not start M07 |
-| M07 Year/Program/Credits | Not started | - | Requires scores/sign-offs |
-| M08 Analytics/Exports | Not started | - | Requires M07 data |
-| M09 Polish/Hardening | Not started | - | Final cleanup |
+| M06 Plagiarism/Integrity | Done | Per-type thresholds (Thesis 20), stub prose/code providers, exclusions with certificate, OPEN→…→RATIFIED/DISMISSED cases, UNDER_COMMITTEE_REVIEW, programming zip on `plagiarism.code`, hourly cap + health % | |
+| M07 Year/Program/Credits | Done | Five-criterion year rubric, 1 Compulsory Basket credit per signed year, Mentor PO/PSO vs Faculty CO, programme cumulation, exam-cell JSON via `export.exam-cell` | Booklet PDF shipped in M08 |
+| M08 Analytics/Exports | Done | Campus analytics, Learning Record PDF, workshop hours certificate, health booklet counts | Archival polish is M09 |
+| M09 Polish/Hardening | Done | Archival sentence, plagiarism headroom, audit table, sign-off and case locks | Stop after M09 |
 
 Use only these status values:
 
@@ -105,14 +105,15 @@ npm run seed:m03
 npm run seed:m04
 npm run seed:m05
 npm run seed:m06
+npm run seed:m07
 ```
 
-M06 commands run:
+M07 commands run:
 
 - `npm run lint` — pass
 - `npm run build` — pass
-- `npm test` — pass (normalize + scoring + internship + plagiarism)
-- `npm run seed:m06` — pass (Thesis 20, project 35% exclusion demo, internship case, code job, 78/100 usage)
+- `npm test` — pass (normalize + scoring + internship + plagiarism + cumulate + exam-cell)
+- `npm run seed:m07` — pass (2/4 credits, year totals 80 and 90, 2024-25 exam-cell JSON)
 
 Restart `npm run dev` and `npm run worker` after pulling M01 so `AUTH_SECRET` and the notify worker load.
 
@@ -141,14 +142,14 @@ Local test steps (what to run, where OTP prints, seed emails, domain rules): [`d
 | Supervisor-certified exclusions | Implemented | M06 |
 | Plagiarism case management | Implemented | M06 |
 | Code-similarity separate from prose | Implemented | M06 |
-| Year-wise committee workflow | Planned | M07 |
-| Program-wise committee workflow | Planned | M07 |
-| 1 credit/year ledger | Planned | M07 |
-| Exam-cell export | Planned | M07 |
+| Year-wise committee workflow | Implemented | M07 |
+| Program-wise committee workflow | Implemented | M07 |
+| 1 credit/year ledger | Implemented | M07 |
+| Exam-cell export | Implemented | M07 |
 | Mentor PO/PSO role | Implemented | M02, M07 |
-| Six-campus analytics | Planned | M08 |
-| Booklet-style PDF export | Planned | M08 |
-| Archival policy explicit | Planned | M09 |
+| Six-campus analytics | Implemented | M08 |
+| Booklet-style PDF export | Implemented | M08 |
+| Archival policy explicit | Implemented | M09 |
 | One-time declaration only | Implemented | M01, M09 |
 | Email + OTP sign-in | Implemented | M01 |
 | Sign in with Google (provisioned emails only) | Implemented | M01 |
@@ -156,7 +157,7 @@ Local test steps (what to run, where OTP prints, seed emails, domain rules): [`d
 
 ## Last Completed Milestone
 
-M06 Plagiarism/Integrity
+M09 Polish/Hardening
 
 ## Known Gaps / Decisions
 
@@ -164,18 +165,22 @@ M06 Plagiarism/Integrity
 - Real plagiarism provider is not selected. Use the `SimilarityProvider` interface plus hashed-shingle stubs (`STUB_PROSE` / `STUB_CODE`). Do not add a Turnitin client.
 - Programming Practice is one zip on Applied courses and always uses job `plagiarism.code` on the code-similarity queue.
 - Opening a case sets the deliverable to `UNDER_COMMITTEE_REVIEW` and restores `statusBeforeCase` on ratify or dismiss.
-- Hourly cap is Valkey `rl:plagiarism:{campus}:{hour}` vs `settings.plagiarismHourlyCap` (seed 100). Health shows usage %; seed writes 78.
+- Hourly cap is Valkey `rl:plagiarism:{campus}:{hour}` vs `settings.plagiarismHourlyCap` (seed 100). Warn-at percent is `settings.plagiarismWarnPercent` (seed 70). At or above 90%, Admin shows a banner and enqueue/retry waits double to 120 seconds. See `docs/ops-plagiarism-headroom.md`.
+- Archival policy is `settings.archivalPolicy`. Missing key reads as `WORKING_COPY_BESIDE_HARDBOUND`. The booklet footer and student exports quote that sentence.
 - Real LMS integration for Classroom components is not selected. Use manual entry first.
 - Real academic ERP integration is not selected. Use exam-cell export first.
 - File storage starts local under `FILE_DIR`; S3/MinIO can be added later only when needed.
 - Auth is email + OTP and Google only. Local OTP uses worker/Next console log until SMTP is set. Google needs real `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` to enable the button.
 - Sign-in accepts `@cutm.ac.in`, `@cutm.edu.in`, dummy admin `khanbasir5555@gmail.com`, and OTP Gmail `khanbasir5556@gmail.com`. Seed dummy users skip OTP and enter directly until invitation-based OTP ships. Other Gmail addresses are rejected.
 - SMTP send is a small STARTTLS helper; if it fails, fix env or leave SMTP unset and use console OTP.
-- Workshop hours certificate is JSON on the student course header. PDF export is M08.
+- Workshop hours still show as a sum on the student course header. The PDF certificate is `export.workshop-certificate` on the exports queue.
 - Draft save is server-validated only on Submit, so incomplete drafts can be stored.
 - Changing a combination drops leftover **draft** entries of removed record types. Submitted rows stay for the faculty inbox.
 - Classroom 2+2+3+3 needs the course split set to 2/2/3/3. Default campus split stays 2.5 each. `seed:m04` writes that split on `ALR-THEORY-PRACTICE-PROJECT`.
 - AI scoring is a deterministic midpoint stub on the BullMQ `scoring` queue. Suggestions fill inputs only; they are not saved until faculty confirm. Override reason is required when saved marks differ from the latest DONE draft.
+- Programme cumulation is the equal-weight mean of signed year rubric totals, then × `programCumulateScale` / 100 (default 100). A student stays off the programme board while any year evaluation is still open. Year sign posts exactly 1 `ALR_YEAR` credit; the unique ledger index rejects a second post for the same student and year.
+- Exam-cell JSON is written by the BullMQ `exports` job `export.exam-cell`. Download is `GET /api/exports/exam-cell?year=&campus=` for Admin, Dean, or Exam cell. Keep the worker running when you click Export.
+- Analytics never uses `"use cache"`. A missing campus filter stays on the signed-in campus. Booklet PDFs are `export.booklet`; download is `GET /api/exports/booklet?request=`. Each BullMQ worker uses its own Valkey connection so blocking queues do not starve the exports worker.
 
 ## How To Update This Tracker
 

@@ -10,6 +10,7 @@ const APP_PREFIXES = [
   "/hod",
   "/dean",
   "/admin",
+  "/committee",
 ]
 
 export function proxy(request: NextRequest) {
@@ -43,5 +44,6 @@ export const config = {
     "/hod/:path*",
     "/dean/:path*",
     "/admin/:path*",
+    "/committee/:path*",
   ],
 }
